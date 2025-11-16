@@ -21,7 +21,7 @@ import APIDemo from "../../shared/components/ui/APIDemo.jsx";
 import ReactQueryDemo from "../../shared/components/ui/ReactQueryDemo.jsx";
 import ErrorBoundary from "../../shared/components/ui/ErrorBoundary.jsx";
 import NotFoundPage from "../../shared/components/pages/NotFoundPage.jsx";
-import MainPage from "../../features/landingPage/pages/mainPage.jsx";
+import MainPage from "../../features/landingPage/pages/MainPage.jsx";
 
 const UsersPage = () => (
   <div className="p-4 text-xl">User Management (Protected; requires users.view)</div>
@@ -42,7 +42,7 @@ const RootLayout = () => (
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
-    children: [ 
+    children: [
       {
         element: <PublicRoute />,
         children: [
