@@ -32,7 +32,7 @@ export const Navbar = () => {
     };
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50"> {/* Tambahkan background untuk visibilitas */}
+        <nav className="fixed top-0 left-0 right-0 z-50">
             <div className="hidden md:flex container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between w-full h-16">
 
@@ -60,20 +60,14 @@ export const Navbar = () => {
                             </button>
                         ) : (
                             <div className="flex items-center gap-2 sm:gap-4">
-                                <button
-                                    className="hidden sm:flex rounded-xl px-3 py-2 bg-white/50 backdrop-blur-lg text-black font-semibold items-center gap-1 shadow-md hover:bg-white cursor-pointer transition-all duration-150 text-sm"
-                                    style={{ boxShadow: '0 2px 8px 0 rgba(0,0,0,0.04)' }}
-                                >
+                                <button className="hidden sm:flex rounded-xl px-3 py-2 bg-white/50 backdrop-blur-lg text-black font-semibold items-center gap-1 shadow-md hover:bg-white cursor-pointer transition-all duration-150 text-sm" style={{ boxShadow: '0 2px 8px 0 rgba(0,0,0,0.04)' }}>
                                     <div className="flex align-middle gap-1 ">
                                         <Globe />
                                     </div>
                                 </button>
 
-                                <button
-                                    className="rounded-xl px-4 py-2 bg-black text-white font-semibold hover:bg-gray-800 cursor-pointer transition-all duration-150 text-sm"
-                                    onClick={() => navigate("/login")}
-                                >
-                                    Sign In
+                                <button className="rounded-xl px-4 py-2 bg-black text-white font-semibold hover:bg-gray-800 cursor-pointer transition-all duration-150 text-sm" onClick={() => navigate("/login")} >
+                                    Start Now
                                 </button>
                             </div>
                         )}
@@ -101,23 +95,3 @@ export const Navbar = () => {
         </nav>
     );
 };
-
-
-
-
-{/* <PillNav
-                            logo={logo}
-                            logoAlt="Company Logo"
-                            items={[
-                                { label: 'Home', href: '/' },
-                                { label: 'About', href: '/about' },
-                                { label: 'Services', href: '/services' },
-                                { label: 'Contact', href: '/contact' }
-                            ]}
-                            className="hidden md:flex"
-                            ease="power2.easeOut"
-                            baseColor="#ffffff"
-                            pillColor="#ffffffCC"
-                            hoveredPillTextColor="var(--color-primary)"
-                            pillTextColor="#000000"
-                        /> */}
