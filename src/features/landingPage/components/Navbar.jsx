@@ -2,9 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ChevronDown, Globe, LogOut } from "lucide-react";
 import logo from "../../../assets/logo/main-logo-black.svg";
-import PillNav from "../utils/pillNav/PillNav";
 import StaggeredMenu from "../utils/staggeredMenu/StaggeredMenu";
-
 
 export const Navbar = () => {
     const navigate = useNavigate();
@@ -66,7 +64,7 @@ export const Navbar = () => {
                                     </div>
                                 </button>
 
-                                <button className="rounded-xl px-4 py-2 bg-black text-white font-semibold hover:bg-gray-800 cursor-pointer transition-all duration-150 text-sm" onClick={() => navigate("/login")} >
+                                <button className="rounded-xl px-4 py-2 bg-black text-white font-semibold hover:bg-gray-800 cursor-pointer transition-all duration-150 text-sm" onClick={() => navigate("/profiling/form")} >
                                     Start Now
                                 </button>
                             </div>
@@ -74,7 +72,7 @@ export const Navbar = () => {
                     </div>
                 </div>
             </div>
-            <div style={{ height: '100vh' }}>
+            <div className="md:hidden" style={{ height: '100vh' }}>
                 <StaggeredMenu
                     className="flex md:hidden"
                     position="right"
@@ -86,7 +84,7 @@ export const Navbar = () => {
                     openMenuButtonColor="#000000"
                     changeMenuColorOnOpen={true}
                     colors={['#B19EEF', '#5227FF']}
-                    logoUrl='/src/assets/logo/main-logo-black.svg'
+                    logoUrl={logo}
                     accentColor="#ff6b6b"
                     onMenuOpen={() => console.log('Menu opened')}
                     onMenuClose={() => console.log('Menu closed')}

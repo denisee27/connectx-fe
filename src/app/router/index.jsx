@@ -22,6 +22,8 @@ import ReactQueryDemo from "../../shared/components/ui/ReactQueryDemo.jsx";
 import ErrorBoundary from "../../shared/components/ui/ErrorBoundary.jsx";
 import NotFoundPage from "../../shared/components/pages/NotFoundPage.jsx";
 import MainPage from "../../features/landingPage/pages/MainPage.jsx";
+import FormProfile from "../../features/Profiling/pages/FormProfile.jsx";
+import Questioner from "../../features/Profiling/pages/Questioner.jsx";
 
 const UsersPage = () => (
   <div className="p-4 text-xl">User Management (Protected; requires users.view)</div>
@@ -50,6 +52,8 @@ export const router = createBrowserRouter([
           { path: "/login", element: <LoginPage /> },
           { path: "/register", element: <RegisterPage /> },
           { path: "/forgot-password", element: <ForgotPasswordPage /> },
+          { path: "/profiling/form", element: <FormProfile /> },
+          { path: "/profiling/quiz", element: <Questioner /> },
         ],
       },
       {

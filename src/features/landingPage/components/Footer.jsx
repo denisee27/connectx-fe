@@ -59,7 +59,7 @@ export const Footer = () => {
                             <ul className="space-y-2 text-base md:text-lg text-gray-800">
                                 <li className="border-b border-black">About</li>
                                 <li className="border-b border-black">Contact us</li>
-                                <li className="border-b border-black" s>Careers <span className="inline-block">↗</span></li>
+                                <li className="border-b border-black">Careers <span className="inline-block">↗</span></li>
                                 <li className="border-b border-black">Support <span className="inline-block">↗</span></li>
                             </ul>
                         </div>

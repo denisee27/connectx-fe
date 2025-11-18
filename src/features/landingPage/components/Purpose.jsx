@@ -3,8 +3,10 @@ import person1 from "../../../assets/people/person1.svg";
 import imageCollage from "../../../assets/people/group.svg";
 import findImage from "../../../assets/people/find.svg";
 import hostImage from "../../../assets/people/host.svg";
+import { useNavigate } from "react-router-dom";
 
-export default function Purpose() {
+export const Purpose = () => {
+    const navigate = useNavigate();
     return (
         <div className="mt-[80px]">
             <div className="md:py-24 bg-white">
@@ -19,10 +21,10 @@ export default function Purpose() {
                             <p className="text-lg text-gray-700 mb-8">
                                 We want our community to find meaningful and authentic connections that match their vibe.
                             </p>
-                            <button className="bg-black text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-gray-800 cursor-pointer transition">Start Now</button>
+                            <button onClick={() => navigate("/login")} className="bg-black hover:cursor-pointer text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-gray-800 cursor-pointer">Start Now</button>
                         </div>
-                        <div className="flex-shrink-0 flex justify-center items-center relative order-1 md:order-2" style={{ minHeight: '340px', minWidth: '380px' }}>
 
+                        <div className="flex-shrink-0 flex justify-center items-center relative order-1 md:order-2" style={{ minHeight: '340px', minWidth: '380px' }}>
                             <div className="absolute left-0 z-30 w-[260px] h-[340px] rounded-2xl overflow-hidden shadow-lg bg-white flex-shrink-0">
                                 <img src={person1} alt="Meetup" className="w-full h-full object-cover" />
                                 <div className="absolute right-4 top-4 bg-orange-500 text-white font-semibold px-4 py-2 rounded-lg text-lg rotate-90 shadow">Meetup</div>
@@ -37,8 +39,8 @@ export default function Purpose() {
                                 <img src={person1} alt="Meetup" className="w-full h-full object-cover opacity-60" />
                                 <div className="absolute right-4 top-4 bg-orange-500/60 text-white font-semibold px-4 py-2 rounded-lg text-lg rotate-90 shadow">Meetup</div>
                             </div>
-                        </div >
-                    </div >
+                        </div>
+                    </div>
                 </div>
             </div>
             <div className=" bg-white p-4 sm:p-8 lg:p-16 flex justify-center items-center">
@@ -60,7 +62,7 @@ export default function Purpose() {
                                 <br />
                                 Whether it’s smarter AI matchmaking, better personality-based group suggestions, or new tools that help you host your own meetups safely and effortlessly, you’ll be the first to see how we’re shaping the future of real-life connection. Let’s build a world where meeting the right people feels easy, natural, and authentic  with ConnectX at the center of it.
                             </p>
-                            <button className="bg-black text-white font-semibold py-3 px-8 rounded-lg hover:bg-gray-900 cursor-pointer transition duration-300 w-fit">
+                            <button onClick={() => navigate("/profiling/form")} className="bg-black hover:cursor-pointer text-white font-semibold py-3 px-8 rounded-lg hover:bg-gray-800 cursor-pointer transition duration-300 w-fit">
                                 Start Now
                             </button>
                         </div>
@@ -111,5 +113,5 @@ export default function Purpose() {
                 </div>
             </div>
         </div >
-    );
+    )
 }
