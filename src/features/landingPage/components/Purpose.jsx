@@ -21,7 +21,7 @@ export const Purpose = () => {
                             <p className="text-lg text-gray-700 mb-8">
                                 We want our community to find meaningful and authentic connections that match their vibe.
                             </p>
-                            <button onClick={() => navigate("/login")} className="bg-black hover:cursor-pointer text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-gray-800 cursor-pointer">Start Now</button>
+                            <button onClick={() => navigate("/profiling/questioner")} className="bg-black hover:cursor-pointer text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-gray-800 cursor-pointer">Start Now</button>
                         </div>
 
                         <div className="flex-shrink-0 flex justify-center items-center relative order-1 md:order-2" style={{ minHeight: '340px', minWidth: '380px' }}>
@@ -62,7 +62,7 @@ export const Purpose = () => {
                                 <br />
                                 Whether it’s smarter AI matchmaking, better personality-based group suggestions, or new tools that help you host your own meetups safely and effortlessly, you’ll be the first to see how we’re shaping the future of real-life connection. Let’s build a world where meeting the right people feels easy, natural, and authentic  with ConnectX at the center of it.
                             </p>
-                            <button onClick={() => navigate("/profiling/form")} className="bg-black hover:cursor-pointer text-white font-semibold py-3 px-8 rounded-lg hover:bg-gray-800 cursor-pointer transition duration-300 w-fit">
+                            <button onClick={() => navigate("/profiling/questioner")} className="bg-black hover:cursor-pointer text-white font-semibold py-3 px-8 rounded-lg hover:bg-gray-800 cursor-pointer transition duration-300 w-fit">
                                 Start Now
                             </button>
                         </div>

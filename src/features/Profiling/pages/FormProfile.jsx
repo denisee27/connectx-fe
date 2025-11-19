@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
+import { submitProfiling } from "../api";
+import { buildProfilingPayload } from "../utils/payload";
+import { QUESTIONS } from "../utils/questions";
+import { useModal } from "../../../core/stores/uiStore";
+import { TriangleAlert } from "lucide-react";
 
 const profileSchema = z.object({
     fullName: z.string().min(2, "Nama minimal 2 karakter"),
@@ -18,9 +23,11 @@ const profileSchema = z.object({
 
 export default function FormProfile() {
     const navigate = useNavigate();
+    const refreshModal = useModal("profilingRefreshConfirm");
     const {
         register,
         handleSubmit,
+        reset,
         formState: { errors, isSubmitting },
     } = useForm({
         resolver: zodResolver(profileSchema),
@@ -34,13 +41,76 @@ export default function FormProfile() {
         mode: "onBlur",
     });
 
-    const onSubmit = (data) => {
+    const onSubmit = async (data) => {
         try {
-            localStorage.setItem("profilingProfile", JSON.stringify(data));
-            navigate("/profiling/quiz");
+            const answersRaw = localStorage.getItem("profilingAnswers");
+            const prefsRaw = localStorage.getItem("profilingPreferences");
+            const meetUpRaw = localStorage.getItem("profilingMeetUpPref");
+            const answers = answersRaw ? JSON.parse(answersRaw) : null;
+            const preferences = prefsRaw ? JSON.parse(prefsRaw) : [];
+            const meetUp = meetUpRaw ? JSON.parse(meetUpRaw) : "";
+
+            if (!answers || !Array.isArray(answers) || answers.length !== QUESTIONS.length) {
+                throw new Error("Jawaban quiz tidak lengkap. Silakan kembali ke langkah sebelumnya.");
+            }
+
+            const payload = buildProfilingPayload(data, answers);
+            const questionTextById = QUESTIONS.reduce((acc, curr) => {
+                acc[curr.id] = curr.text || "";
+                return acc;
+            }, {});
+            payload.answers = (payload.answers || []).map((a) => ({
+                ...a,
+                question: questionTextById[a.id],
+            }));
+            payload.preferences = preferences;
+            payload.meetUpPreference = meetUp;
+
+            // Navigate to suggestion page with loading indicator
+            navigate("/profiling/suggestion", { state: { submitting: true } });
+            await submitProfiling(payload);
+            // Clear temporary storage on success
+            try {
+                localStorage.removeItem("profilingAnswers");
+                localStorage.removeItem("profilingPreferences");
+                localStorage.removeItem("profilingMeetUpPref");
+            } catch (_) { }
+            // Pass results via state or rely on suggestion page to fetch
+            navigate("/profiling/suggestion", { replace: true, state: { success: true } });
         } catch (e) {
-            console.error("Failed to store profile", e);
+            const message = e?.response?.data?.message || e?.message || "Gagal mengirim data";
+            navigate("/profiling/suggestion", { replace: true, state: { error: message } });
         }
+    };
+
+    // Refresh handling via custom modal only (no native browser dialogs)
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            const isRefreshKey = e.key === "F5" || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r");
+            if (isRefreshKey) {
+                e.preventDefault();
+                refreshModal.open();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [refreshModal]);
+
+    const confirmNo = () => {
+        refreshModal.close();
+    };
+
+    const confirmYes = () => {
+        localStorage.removeItem("profilingProfile");
+        localStorage.removeItem("profilingAnswers");
+        localStorage.removeItem("profilingPreferences");
+        localStorage.removeItem("profilingMeetUpPref");
+        sessionStorage.setItem("profilingSkipRefreshModal", "1");
+        reset({ fullName: "", age: "", gender: "", city: "", occupation: "" }); refreshModal.close(); navigate("/profiling/questioner", { replace: true });
+
     };
 
     return (
@@ -141,6 +211,65 @@ export default function FormProfile() {
                         </button>
                     </div>
                 </form>
+                {refreshModal.isOpen && (
+                    <div>
+                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" aria-hidden="true" />
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div
+                                className="relative w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl"
+                                role="dialog"
+                                aria-modal="true"
+                                aria-labelledby="profiling-refresh-title"
+                            >
+                                <div className="bg-gradient-to-br from-orange-50 to-yellow-50 px-6 pt-8 pb-6 text-center">
+                                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-orange-100">
+                                        <svg className="h-8 w-8 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                            <TriangleAlert />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div className="px-6 py-6">
+                                    <h3 id="profiling-refresh-title" className="text-center text-lg font-semibold text-gray-900 mb-3">
+                                        Konfirmasi Refresh
+                                    </h3>
+                                    <p className="text-center text-sm text-gray-600">
+                                        Apakah Anda yakin ingin memulai ulang? Semua jawaban akan direset.
+                                    </p>
+                                    <div className="mt-6 flex items-center justify-center gap-3">
+                                        <button
+                                            id="profiling-refresh-yes-btn"
+                                            onClick={confirmYes}
+                                            className="rounded-full px-5 py-2.5 bg-orange-500 text-white font-semibold hover:bg-orange-600"
+                                        >
+                                            Yes
+                                        </button>
+                                        <button
+                                            onClick={confirmNo}
+                                            className="rounded-full px-5 py-2.5 border border-gray-300 bg-white text-gray-700"
+                                        >
+                                            No
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    // <div>
+                    //     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" aria-hidden="true" />
+                    //     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    //         <div className="relative w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl">
+                    //             <div className="p-6">
+                    //                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Konfirmasi Refresh</h3>
+                    //                 <p className="text-sm text-gray-600">Apakah Anda yakin ingin memulai ulang? Semua jawaban akan direset.</p>
+                    //                 <div className="mt-6 flex justify-end gap-3">
+                    //                     <button onClick={() => refreshModal.close()} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700">Tidak, tetap</button>
+                    //                     <button onClick={() => {  }} className="px-4 py-2 rounded-lg bg-orange-500 text-white">Ya, mulai ulang</button>
+                    //                 </div>
+                    //             </div>
+                    //         </div>
+                    //     </div>
+                    // </div>
+                )}
             </div>
         </div>
     );

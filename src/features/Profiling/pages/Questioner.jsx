@@ -1,77 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { submitProfiling } from "../api";
-import { buildProfilingPayload } from "../utils/payload";
+// Submission now happens in FormProfile per revised flow
 import { useModal } from "../../../core/stores/uiStore";
 import { TriangleAlert } from "lucide-react";
-
-const QUESTIONS = [
-    {
-        id: 1,
-        type: "single",
-        text: "Do you prefer large social gatherings or intimate settings?",
-        options: [
-            "Large gatherings",
-            "Small groups",
-            "One-on-one",
-            "Mix of both",
-        ],
-    },
-    {
-        id: 2,
-        type: "single",
-        text: "How do you recharge after a long day?",
-        options: ["Quiet time", "Exercise", "Socializing", "Creative hobby"],
-    },
-    {
-        id: 3,
-        type: "single",
-        text: "What best describes your communication style?",
-        options: ["Direct", "Diplomatic", "Analytical", "Expressive"],
-    },
-    {
-        id: 4,
-        type: "single",
-        text: "How do you make decisions?",
-        options: ["Gut feeling", "Pros & cons", "Ask others", "Research deeply"],
-    },
-    {
-        id: 5,
-        type: "single",
-        text: "What motivates you most?",
-        options: ["Achievement", "Connection", "Stability", "Discovery"],
-    },
-    {
-        id: 6,
-        type: "single",
-        text: "Your ideal weekend looks like…",
-        options: ["Outdoor adventures", "Stay home & relax", "Social events", "Learning something new"],
-    },
-    {
-        id: 7,
-        type: "single",
-        text: "In a team, you often…",
-        options: ["Lead", "Support", "Strategize", "Execute"],
-    },
-    {
-        id: 8,
-        type: "single",
-        text: "You handle conflict by…",
-        options: ["Address immediately", "Pause & reflect", "Seek mediation", "Avoid if possible"],
-    },
-    {
-        id: 9,
-        type: "single",
-        text: "When meeting new people, you…",
-        options: ["Start conversations", "Wait to be approached", "Observe first", "Stick with friends"],
-    },
-    {
-        id: 10,
-        type: "single",
-        text: "Which environments help you thrive?",
-        options: ["Fast-paced", "Structured", "Flexible", "Collaborative"],
-    },
-];
+import { QUESTIONS } from "../utils/questions";
 
 function ProgressBar({ current, total }) {
     const percent = useMemo(() => Math.round((current / total) * 100), [current, total]);
@@ -111,55 +43,27 @@ export default function Questioner() {
     const canNext = answers[index] && answers[index].value !== null;
     const isLast = index === total - 1;
 
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         setLoading(true);
         setError(null);
         setSuccess(false);
-
         try {
-            const profileRaw = localStorage.getItem("profilingProfile");
-            const profile = profileRaw ? JSON.parse(profileRaw) : null;
-            if (!profile) throw new Error("Data profil tidak ditemukan");
-
-            // Build mapping id -> question text
-            const questionTextById = QUESTIONS.reduce((acc, curr) => {
-                acc[curr.id] = curr.text || "";
-                return acc;
-            }, {});
-
-            // Validate question text exists for all answered items
             const answered = (answers || []).filter(Boolean);
-            const hasEmptyQuestion = answered.some((a) => {
-                const t = questionTextById[a.id];
-                return !t || !String(t).trim();
-            });
-            if (hasEmptyQuestion) {
-                throw new Error("Pertanyaan tidak boleh kosong.");
+            if (answered.length !== QUESTIONS.length) {
+                throw new Error("Mohon jawab semua pertanyaan dulu.");
             }
-
-            // Build base payload, then enrich answers with question text
-            const payload = buildProfilingPayload(profile, answers);
-            payload.answers = (payload.answers || []).map((a) => ({
-                ...a,
-                question: questionTextById[a.id],
-            }));
-
-            await submitProfiling(payload);
+            localStorage.setItem("profilingAnswers", JSON.stringify(answered));
             setSuccess(true);
-            // Optionally clear storage
-            localStorage.removeItem("profilingProfile");
-            // Navigate or show success message
-            setTimeout(() => navigate("/"), 1200);
+            navigate("/profiling/preference");
         } catch (e) {
-            // Map and display friendly error
-            const message = e?.response?.data?.message || e?.message || "Gagal mengirim data";
+            const message = e?.message || "Terjadi kesalahan saat menyimpan jawaban";
             setError(message);
         } finally {
             setLoading(false);
         }
     };
 
-    // Detect refresh attempts and show confirmation modal
+    // Detect refresh attempts and show confirmation modal, with guard to skip
     useEffect(() => {
         const handleKeyDown = (e) => {
             const isRefreshKey =
@@ -167,31 +71,20 @@ export default function Questioner() {
                 ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r");
             if (isRefreshKey) {
                 e.preventDefault();
+                // If coming from FormProfile reset, skip showing this modal once
+                const skip = sessionStorage.getItem("profilingSkipRefreshModal") === "1";
+                if (skip) {
+                    try { sessionStorage.removeItem("profilingSkipRefreshModal"); } catch (_) {}
+                    return; // do not open modal
+                }
                 refreshModal.open();
             }
         };
 
-        const beforeUnloadHandler = (e) => {
-            const message =
-                "Apakah Anda yakin ingin memulai ulang? Semua jawaban akan direset.";
-            e.preventDefault();
-            e.returnValue = message; // Native browser dialog only
-        };
-
-        const pageHideHandler = () => {
-            try {
-                sessionStorage.setItem("profilingReloadPending", "1");
-            } catch (_) { }
-        };
-
         window.addEventListener("keydown", handleKeyDown);
-        window.addEventListener("beforeunload", beforeUnloadHandler);
-        window.addEventListener("pagehide", pageHideHandler);
 
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
-            window.removeEventListener("beforeunload", beforeUnloadHandler);
-            window.removeEventListener("pagehide", pageHideHandler);
         };
     }, [refreshModal]);
 
@@ -199,35 +92,30 @@ export default function Questioner() {
         const navigationEntries = performance.getEntriesByType?.("navigation") || [];
         const navType = navigationEntries[0]?.type || "navigate";
         const isReload = navType === "reload";
-        const pending = sessionStorage.getItem("profilingReloadPending") === "1";
-        if (isReload && pending) {
-            // Clean flag first to avoid loops
-            sessionStorage.removeItem("profilingReloadPending");
-            // Reset state and storage, then redirect
+        // Also treat explicit reset navigation from FormProfile as a hard reset
+        const fromFormReset = sessionStorage.getItem("profilingSkipRefreshModal") === "1";
+        if (isReload || fromFormReset) {
             setAnswers(Array(total).fill(null));
+            setIndex(0);
             try {
-                // Clear temporary profiling data
                 localStorage.removeItem("profilingProfile");
-                // Clear any profiling-related session keys
-                Object.keys(sessionStorage).forEach((key) => {
-                    if (key.includes("profiling")) sessionStorage.removeItem(key);
-                });
-            } catch (_) { }
-            navigate("/profiling/form", { replace: true });
+                if (fromFormReset) sessionStorage.removeItem("profilingSkipRefreshModal");
+            } catch (_) {}
         }
-    }, [navigate, total]);
+    }, [total]);
 
     const handleConfirmRefreshYes = () => {
         // User explicitly chose Yes via our modal (F5/Cmd+R path)
         refreshModal.close();
         setAnswers(Array(total).fill(null));
+        setIndex(0);
         try {
             localStorage.removeItem("profilingProfile");
             Object.keys(sessionStorage).forEach((key) => {
                 if (key.includes("profiling")) sessionStorage.removeItem(key);
             });
         } catch (_) { }
-        navigate("/profiling/form", { replace: true });
+        navigate("/profiling/questioner", { replace: true });
     };
 
     const handleConfirmRefreshNo = () => {

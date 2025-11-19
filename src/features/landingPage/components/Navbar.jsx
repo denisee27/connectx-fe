@@ -25,7 +25,6 @@ export const Navbar = () => {
     }, []);
 
     const handleSignOut = async () => {
-        await supabase.auth.signOut();
         navigate("/");
     };
 
@@ -64,7 +63,7 @@ export const Navbar = () => {
                                     </div>
                                 </button>
 
-                                <button className="rounded-xl px-4 py-2 bg-black text-white font-semibold hover:bg-gray-800 cursor-pointer transition-all duration-150 text-sm" onClick={() => navigate("/profiling/form")} >
+                                <button className="rounded-xl px-4 py-2 bg-black text-white font-semibold hover:bg-gray-800 cursor-pointer transition-all duration-150 text-sm" onClick={() => navigate("/profiling/questioner")} >
                                     Start Now
                                 </button>
                             </div>
@@ -83,9 +82,9 @@ export const Navbar = () => {
                     menuButtonColor="#000000"
                     openMenuButtonColor="#000000"
                     changeMenuColorOnOpen={true}
-                    colors={['#B19EEF', '#5227FF']}
+                    colors={['var(--color-accent)', 'var(--color-secondary)']}
                     logoUrl={logo}
-                    accentColor="#ff6b6b"
+                    accentColor="var(--color-primary)"
                     onMenuOpen={() => console.log('Menu opened')}
                     onMenuClose={() => console.log('Menu closed')}
                 />

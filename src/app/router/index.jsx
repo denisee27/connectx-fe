@@ -24,6 +24,8 @@ import NotFoundPage from "../../shared/components/pages/NotFoundPage.jsx";
 import MainPage from "../../features/landingPage/pages/MainPage.jsx";
 import FormProfile from "../../features/Profiling/pages/FormProfile.jsx";
 import Questioner from "../../features/Profiling/pages/Questioner.jsx";
+import Preference from "../../features/Profiling/pages/Preference.jsx";
+import Suggestion from "../../features/Profiling/pages/Suggestion.jsx";
 
 const UsersPage = () => (
   <div className="p-4 text-xl">User Management (Protected; requires users.view)</div>
@@ -52,8 +54,10 @@ export const router = createBrowserRouter([
           { path: "/login", element: <LoginPage /> },
           { path: "/register", element: <RegisterPage /> },
           { path: "/forgot-password", element: <ForgotPasswordPage /> },
+          { path: "/profiling/questioner", element: <Questioner /> },
+          { path: "/profiling/preference", element: <Preference /> },
           { path: "/profiling/form", element: <FormProfile /> },
-          { path: "/profiling/quiz", element: <Questioner /> },
+          { path: "/profiling/suggestion", element: <Suggestion /> },
         ],
       },
       {
