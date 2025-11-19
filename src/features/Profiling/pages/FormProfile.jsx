@@ -159,8 +159,6 @@ export default function FormProfile() {
                                 <option value="">Select gender</option>
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
-                                <option value="non_binary">Non-binary</option>
-                                <option value="prefer_not">Prefer not to say</option>
                             </select>
                             {errors.gender && (
                                 <p className="mt-1 text-sm text-red-600">{errors.gender.message}</p>
@@ -200,14 +198,6 @@ export default function FormProfile() {
                             className="w-full hover:cursor-pointer rounded-full bg-primary hover:bg-secondary text-white font-semibold py-3 transition-colors disabled:opacity-60"
                         >
                             Continue
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => navigate("/")}
-                            disabled={isSubmitting}
-                            className="w-full hover:cursor-pointer rounded-full border border-primary text-primary hover:bg-secondary hover:text-white font-semibold py-3 transition-colors disabled:opacity-60"
-                        >
-                            Back To Home
                         </button>
                     </div>
                 </form>
