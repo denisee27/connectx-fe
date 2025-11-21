@@ -83,21 +83,62 @@ export default function FormProfile() {
         }
     };
 
-    // Refresh handling via custom modal only (no native browser dialogs)
+    // Alert sebelum refresh dan tandai reload terkonfirmasi
     useEffect(() => {
-        const handleKeyDown = (e) => {
-            const isRefreshKey = e.key === "F5" || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r");
-            if (isRefreshKey) {
-                e.preventDefault();
-                refreshModal.open();
-            }
+        const onBeforeUnload = (e) => {
+            const message = "Perubahan Anda belum disimpan. Apakah Anda yakin ingin memuat ulang halaman?";
+            e.preventDefault();
+            e.returnValue = message;
+            return message;
         };
-
-        window.addEventListener("keydown", handleKeyDown);
+        const onPageHide = () => {
+            try {
+                sessionStorage.setItem("profilingReloadConfirmed", "1");
+                sessionStorage.setItem("profilingReloadOrigin", "form");
+            } catch (_) { }
+        };
+        window.addEventListener("beforeunload", onBeforeUnload);
+        window.addEventListener("pagehide", onPageHide);
         return () => {
-            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("beforeunload", onBeforeUnload);
+            window.removeEventListener("pagehide", onPageHide);
         };
-    }, [refreshModal]);
+    }, []);
+
+    // Saat reload terkonfirmasi, reset semua input dan kembali ke questioner
+    useEffect(() => {
+        try {
+            const navigationEntries = performance.getEntriesByType?.("navigation") || [];
+            const navType = navigationEntries[0]?.type || "navigate";
+            const confirmed = sessionStorage.getItem("profilingReloadConfirmed") === "1";
+            const origin = sessionStorage.getItem("profilingReloadOrigin");
+            if (navType === "reload" && confirmed) {
+                // Reset semua inputan
+                reset({ fullName: "", age: "", gender: "", city: "", occupation: "" });
+                try {
+                    localStorage.removeItem("profilingAnswers");
+                    localStorage.removeItem("profilingCurrentIndex");
+                    localStorage.removeItem("profilingPreferences");
+                    localStorage.removeItem("profilingMeetUpPref");
+                    localStorage.removeItem("profilingProfile");
+                } catch (_) { }
+                // Hapus flag
+                try {
+                    sessionStorage.removeItem("profilingReloadConfirmed");
+                    sessionStorage.removeItem("profilingReloadOrigin");
+                } catch (_) { }
+                // Redirect ke questioner
+                try {
+                    navigate("/profiling/questioner", { replace: true });
+                } catch (_) {
+                    // Jika navigasi gagal, biarkan halaman tetap; tampilkan fallback via modal
+                }
+            }
+        } catch (err) {
+            // Jika terjadi error saat reset
+            console.error("Reset saat reload gagal:", err);
+        }
+    }, [navigate, reset]);
 
     const confirmNo = () => {
         refreshModal.close();

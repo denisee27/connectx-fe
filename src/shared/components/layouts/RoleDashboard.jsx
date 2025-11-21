@@ -2,7 +2,6 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../../core/auth/useAuth";
 import { LoadingScreen } from "../loading/LoadingScreen";
-import SuperAdminDashboard from "../../../features/dashboard/pages/SuperAdminDashboard";
 import { ROLES } from "../../../core/constants/permissions";
 
 //* This needs to be improved, can move the other to /feature lateron
@@ -26,8 +25,6 @@ export const RoleDashboard = () => {
       return <ManagerDashboard />;
     case ROLES.USER:
       return <UserDashboard />;
-    default:
-      return <DefaultDashboard role={user.role} />;
   }
 };
 

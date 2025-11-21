@@ -56,7 +56,13 @@ export default function Suggestion() {
         ];
     }, []);
 
-    const goDashboard = () => navigate("/");
+    const goDashboard = () =>
+        navigate("/dashboard", {
+            state: {
+                from: "suggestion",
+                ...(state || {}),
+            },
+        });
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">

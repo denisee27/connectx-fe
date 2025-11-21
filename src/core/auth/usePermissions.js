@@ -1,5 +1,4 @@
 import { useAuthStore } from "../../features/auth/stores/authStore";
-import { ROLE_HIERARCHY, isRoleHigherOrEqual } from "../constants/permissions";
 import { logger } from "../utils/logger";
 
 /**

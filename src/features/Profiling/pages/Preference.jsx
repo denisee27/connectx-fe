@@ -15,7 +15,7 @@ const TOPICS = [
     "Wellness & Fitness",
 ];
 
-const MEET_UP = ["1:1", "Small group", "Open event"];
+const MEET_UP = ["Intimate", "Small group", "Open event"];
 
 export default function Preference() {
     const navigate = useNavigate();
@@ -37,6 +37,18 @@ export default function Preference() {
         }
     });
     const [error, setError] = useState(null);
+
+    // Determine previous label based on last known question index
+    const currentIndex = useMemo(() => {
+        try {
+            const v = localStorage.getItem("profilingCurrentIndex");
+            const n = v != null ? Number(v) : null;
+            return Number.isFinite(n) ? n : null;
+        } catch (_) {
+            return null;
+        }
+    }, []);
+    const isFirstQuestion = currentIndex === 0;
 
     const canContinue = useMemo(() => {
         return selected.length >= 3 && selected.length <= 5 && Boolean(meetUp);
@@ -75,51 +87,59 @@ export default function Preference() {
         navigate("/profiling/form");
     };
 
-    // Refresh handling (F5/Cmd+R)
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            const isRefreshKey = e.key === "F5" || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r");
-            if (isRefreshKey) {
-                e.preventDefault();
-                refreshModal.open();
-            }
-        };
 
-        const beforeUnloadHandler = (e) => {
-            const message = "Are you sure you want to restart? Your inputs will be cleared.";
+    // Alert sebelum refresh dan tandai reload terkonfirmasi
+    useEffect(() => {
+        const onBeforeUnload = (e) => {
+            const message = "Perubahan Anda belum disimpan. Apakah Anda yakin ingin memuat ulang halaman?";
             e.preventDefault();
             e.returnValue = message;
+            return message;
         };
-
-        const pageHideHandler = () => {
+        const onPageHide = () => {
             try {
-                sessionStorage.setItem("profilingReloadPending", "1");
+                sessionStorage.setItem("profilingReloadConfirmed", "1");
+                sessionStorage.setItem("profilingReloadOrigin", "preference");
             } catch (_) { }
         };
-
-        window.addEventListener("keydown", handleKeyDown);
-        window.addEventListener("beforeunload", beforeUnloadHandler);
-        window.addEventListener("pagehide", pageHideHandler);
-
+        window.addEventListener("beforeunload", onBeforeUnload);
+        window.addEventListener("pagehide", onPageHide);
         return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-            window.removeEventListener("beforeunload", beforeUnloadHandler);
-            window.removeEventListener("pagehide", pageHideHandler);
+            window.removeEventListener("beforeunload", onBeforeUnload);
+            window.removeEventListener("pagehide", onPageHide);
         };
-    }, [refreshModal]);
+    }, []);
 
+    // Saat reload terkonfirmasi, reset input dan kembali ke questioner
     useEffect(() => {
-        const navigationEntries = performance.getEntriesByType?.("navigation") || [];
-        const navType = navigationEntries[0]?.type || "navigate";
-        const isReload = navType === "reload";
-        const pending = sessionStorage.getItem("profilingReloadPending") === "1";
-        if (isReload && pending) {
-            sessionStorage.removeItem("profilingReloadPending");
-            try {
-                localStorage.removeItem("profilingPreferences");
-                localStorage.removeItem("profilingMeetUpPref");
-            } catch (_) { }
-            navigate("/profiling/questioner", { replace: true });
+        try {
+            const navigationEntries = performance.getEntriesByType?.("navigation") || [];
+            const navType = navigationEntries[0]?.type || "navigate";
+            const confirmed = sessionStorage.getItem("profilingReloadConfirmed") === "1";
+            const origin = sessionStorage.getItem("profilingReloadOrigin");
+            if (navType === "reload" && confirmed) {
+                // Reset state lokal
+                setSelected([]);
+                setMeetUp("");
+                try {
+                    localStorage.removeItem("profilingPreferences");
+                    localStorage.removeItem("profilingMeetUpPref");
+                    localStorage.removeItem("profilingAnswers");
+                    localStorage.removeItem("profilingCurrentIndex");
+                } catch (_) { }
+                try {
+                    sessionStorage.removeItem("profilingReloadConfirmed");
+                    sessionStorage.removeItem("profilingReloadOrigin");
+                } catch (_) { }
+                // Redirect ke questioner
+                try {
+                    navigate("/profiling/questioner", { replace: true });
+                } catch (err) {
+                    console.error("Navigasi gagal setelah reload:", err);
+                }
+            }
+        } catch (err) {
+            console.error("Reset saat reload gagal:", err);
         }
     }, [navigate]);
 
@@ -185,7 +205,7 @@ export default function Preference() {
 
                 {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
-                <div className="mt-6 flex items-center justify-end">
+                <div className="mt-6 flex items-center justify-between">
                     <button
                         type="button"
                         onClick={continueNext}

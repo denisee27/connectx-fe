@@ -5,6 +5,21 @@ import { useModal } from "../../../core/stores/uiStore";
 import { TriangleAlert } from "lucide-react";
 import { QUESTIONS } from "../utils/questions";
 
+/**
+ * Questioner type rendering and validation rules
+ * - number: renders 1–10 boxes, stores integer 1..10
+ * - scale: renders Likert (Sangat Setuju..Tidak Setuju), stores integer 5..1
+ * Tipe "single" telah dihapus. Untuk menambah tipe baru: definisikan UI dan validasi.
+ */
+
+const LIKERT = [
+    { label: "Sangat Setuju", value: 5 },
+    { label: "Setuju", value: 4 },
+    { label: "Netral", value: 3 },
+    { label: "Kurang Setuju", value: 2 },
+    { label: "Tidak Setuju", value: 1 },
+];
+
 function ProgressBar({ current, total }) {
     const percent = useMemo(() => Math.round((current / total) * 100), [current, total]);
     return (
@@ -33,15 +48,39 @@ export default function Questioner() {
         setAnswers((prev) => {
             const next = [...prev];
             next[index] = { id: q.id, value };
+            try {
+                localStorage.setItem("profilingAnswers", JSON.stringify(next));
+            } catch (_) {}
             return next;
         });
+    };
+
+    const selectNumber = (value) => {
+        const num = Number(value);
+        if (Number.isFinite(num)) {
+            selectOption(num);
+        }
+    };
+
+    const selectScale = (value) => {
+        const num = Number(value);
+        if ([1, 2, 3, 4, 5].includes(num)) {
+            selectOption(num);
+        }
     };
 
     const next = () => setIndex((i) => Math.min(i + 1, total - 1));
     const prev = () => setIndex((i) => Math.max(i - 1, 0));
 
-    const canNext = answers[index] && answers[index].value !== null;
+    const isValidAnswer = () => {
+        const a = answers[index]?.value;
+        if (q.type === "number") return Number.isInteger(a) && a >= 1 && a <= 10;
+        if (q.type === "scale") return Number.isInteger(a) && a >= 1 && a <= 5;
+        return false;
+    };
+    const canNext = isValidAnswer();
     const isLast = index === total - 1;
+    const isFirst = index === 0;
 
     const handleSubmit = () => {
         setLoading(true);
@@ -53,6 +92,7 @@ export default function Questioner() {
                 throw new Error("Mohon jawab semua pertanyaan dulu.");
             }
             localStorage.setItem("profilingAnswers", JSON.stringify(answered));
+            try { localStorage.setItem("profilingCurrentIndex", String(index)); } catch (_) {}
             setSuccess(true);
             navigate("/profiling/preference");
         } catch (e) {
@@ -63,30 +103,27 @@ export default function Questioner() {
         }
     };
 
-    // Detect refresh attempts and show confirmation modal, with guard to skip
+    // Alert sebelum refresh dan tandai reload terkonfirmasi
     useEffect(() => {
-        const handleKeyDown = (e) => {
-            const isRefreshKey =
-                e.key === "F5" ||
-                ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r");
-            if (isRefreshKey) {
-                e.preventDefault();
-                // If coming from FormProfile reset, skip showing this modal once
-                const skip = sessionStorage.getItem("profilingSkipRefreshModal") === "1";
-                if (skip) {
-                    try { sessionStorage.removeItem("profilingSkipRefreshModal"); } catch (_) {}
-                    return; // do not open modal
-                }
-                refreshModal.open();
-            }
+        const onBeforeUnload = (e) => {
+            const message = "Perubahan Anda belum disimpan. Apakah Anda yakin ingin memuat ulang halaman?";
+            e.preventDefault();
+            e.returnValue = message;
+            return message;
         };
-
-        window.addEventListener("keydown", handleKeyDown);
-
+        const onPageHide = () => {
+            try {
+                sessionStorage.setItem("profilingReloadConfirmed", "1");
+                sessionStorage.setItem("profilingReloadOrigin", "questioner");
+            } catch (_) { }
+        };
+        window.addEventListener("beforeunload", onBeforeUnload);
+        window.addEventListener("pagehide", onPageHide);
         return () => {
-            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("beforeunload", onBeforeUnload);
+            window.removeEventListener("pagehide", onPageHide);
         };
-    }, [refreshModal]);
+    }, []);
 
     useEffect(() => {
         const navigationEntries = performance.getEntriesByType?.("navigation") || [];
@@ -94,28 +131,87 @@ export default function Questioner() {
         const isReload = navType === "reload";
         // Also treat explicit reset navigation from FormProfile as a hard reset
         const fromFormReset = sessionStorage.getItem("profilingSkipRefreshModal") === "1";
+        const fromPreference = sessionStorage.getItem("profilingReturn") === "1";
+        const reloadConfirmed = sessionStorage.getItem("profilingReloadConfirmed") === "1";
         if (isReload || fromFormReset) {
             setAnswers(Array(total).fill(null));
             setIndex(0);
             try {
                 localStorage.removeItem("profilingProfile");
+                localStorage.removeItem("profilingAnswers");
+                localStorage.removeItem("profilingCurrentIndex");
                 if (fromFormReset) sessionStorage.removeItem("profilingSkipRefreshModal");
+                if (reloadConfirmed) {
+                    sessionStorage.removeItem("profilingReloadConfirmed");
+                    sessionStorage.removeItem("profilingReloadOrigin");
+                }
+            } catch (_) {}
+        } else if (fromPreference) {
+            try {
+                const idxRaw = localStorage.getItem("profilingCurrentIndex");
+                const idx = idxRaw != null ? Number(idxRaw) : 0;
+                const safeIdx = Number.isFinite(idx) ? Math.max(0, Math.min(idx, total - 1)) : 0;
+                setIndex(safeIdx);
+                const saved = localStorage.getItem("profilingAnswers");
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length === total) {
+                        setAnswers(parsed);
+                    }
+                }
+            } catch (_) {
+                setIndex(0);
+            }
+            try { sessionStorage.removeItem("profilingReturn"); } catch (_) {}
+        } else {
+            // Fresh mount: hydrate from storage if available
+            try {
+                const saved = localStorage.getItem("profilingAnswers");
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length === total) {
+                        setAnswers(parsed);
+                    }
+                }
+                const idxRaw = localStorage.getItem("profilingCurrentIndex");
+                const idx = idxRaw != null ? Number(idxRaw) : null;
+                if (Number.isFinite(idx)) {
+                    setIndex(Math.max(0, Math.min(idx, total - 1)));
+                }
             } catch (_) {}
         }
     }, [total]);
 
+    // Persist current index whenever it changes
+    useEffect(() => {
+        try { localStorage.setItem("profilingCurrentIndex", String(index)); } catch (_) {}
+    }, [index]);
+
     const handleConfirmRefreshYes = () => {
-        // User explicitly chose Yes via our modal (F5/Cmd+R path)
-        refreshModal.close();
-        setAnswers(Array(total).fill(null));
-        setIndex(0);
+        // Ketika user klik "Iya", kembali ke pertanyaan pertama dengan aman
         try {
-            localStorage.removeItem("profilingProfile");
-            Object.keys(sessionStorage).forEach((key) => {
-                if (key.includes("profiling")) sessionStorage.removeItem(key);
+            refreshModal.close();
+            // Pastikan state jawaban tetap ada; jika tidak ada, coba rehidrasi dari storage
+            setAnswers((prev) => {
+                if (!Array.isArray(prev) || prev.length !== total) {
+                    try {
+                        const saved = localStorage.getItem("profilingAnswers");
+                        if (saved) {
+                            const parsed = JSON.parse(saved);
+                            if (Array.isArray(parsed) && parsed.length === total) return parsed;
+                        }
+                    } catch (_) {}
+                    return Array(total).fill(null);
+                }
+                return prev;
             });
-        } catch (_) { }
-        navigate("/profiling/questioner", { replace: true });
+            setIndex(0);
+            try { localStorage.setItem("profilingCurrentIndex", "0"); } catch (_) {}
+        } catch (err) {
+            // Error handling: gagal reset index/state
+            setError("Gagal kembali ke pertanyaan pertama. Silakan coba lagi.");
+            try { navigate("/profiling/questioner", { replace: true }); } catch (_) {}
+        }
     };
 
     const handleConfirmRefreshNo = () => {
@@ -138,40 +234,59 @@ export default function Questioner() {
 
                 <div className="rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-xl font-semibold text-gray-900 mb-4">{q.text}</h2>
-                    <ul className="space-y-3">
-                        {q.options.map((opt) => {
-                            const selected = answers[index]?.value === opt;
-                            return (
-                                <li key={opt}>
+                    {q.type === "number" && (
+                        <div className="grid grid-cols-5 sm:grid-cols-10 gap-3">
+                            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
+                                const selected = answers[index]?.value === n;
+                                return (
                                     <button
+                                        key={n}
                                         type="button"
-                                        onClick={() => selectOption(opt)}
+                                        onClick={() => selectNumber(n)}
                                         aria-pressed={selected}
                                         className={
-                                            "w-full text-left px-4 py-3 rounded-xl border transition " +
+                                            "flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-lg border text-base sm:text-lg font-semibold transition " +
                                             (selected
-                                                ? "border-orange-400 bg-orange-50"
-                                                : "border-gray-200 hover:border-orange-300 hover:bg-orange-50")
+                                                ? "border-orange-500 bg-orange-50 text-orange-600"
+                                                : "border-gray-200 bg-white text-gray-800 hover:border-orange-300")
                                         }
                                     >
-                                        <span className="inline-flex items-center gap-3">
-                                            <span
-                                                className={
-                                                    "h-5 w-5 rounded-full border flex items-center justify-center " +
-                                                    (selected ? "border-orange-500" : "border-gray-300")
-                                                }
-                                                aria-hidden="true"
-                                            >
-                                                {selected && <span className="h-3 w-3 bg-orange-500 rounded-full" />}
-                                            </span>
-                                            <span className="text-gray-800">{opt}</span>
-                                        </span>
+                                        {n}
                                     </button>
-                                </li>
-                            );
-                        })}
-                    </ul>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {q.type === "scale" && (
+                        <ul className="space-y-3">
+                            {LIKERT.map((opt) => {
+                                const selected = answers[index]?.value === opt.value;
+                                return (
+                                    <li key={opt.label}>
+                                        <label className={"flex items-center gap-3 px-4 py-3 rounded-xl border transition " + (selected ? "border-orange-400 bg-orange-50" : "border-gray-200 hover:border-orange-300 hover:bg-orange-50")}>
+                                            <input
+                                                type="radio"
+                                                name={`likert-${q.id}`}
+                                                value={opt.value}
+                                                checked={selected}
+                                                onChange={(e) => selectScale(e.target.value)}
+                                                className="h-5 w-5 text-orange-500"
+                                            />
+                                            <span className="text-gray-800">{opt.label}</span>
+                                        </label>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+
+                    {q.type !== "number" && q.type !== "scale" && (
+                        <p className="text-sm text-red-600">Tipe pertanyaan tidak dikenali.</p>
+                    )}
                 </div>
+
+                
 
                 {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
                 {success && <p className="mt-4 text-sm text-green-600">Berhasil dikirim!</p>}
@@ -179,11 +294,11 @@ export default function Questioner() {
                 <div className="mt-6 flex items-center justify-between">
                     <button
                         type="button"
-                        onClick={prev}
-                        disabled={index === 0 || loading}
+                        onClick={() => (isFirst ? navigate("/") : prev())}
+                        disabled={loading}
                         className="rounded-full px-5 py-2.5 border border-gray-300 text-gray-700 bg-white disabled:opacity-50"
                     >
-                        Previous
+                        {isFirst ? "Back to Home" : "Previous"}
                     </button>
                     {!isLast ? (
                         <button
@@ -237,13 +352,13 @@ export default function Questioner() {
                                             onClick={handleConfirmRefreshYes}
                                             className="rounded-full px-5 py-2.5 bg-orange-500 text-white font-semibold hover:bg-orange-600"
                                         >
-                                            Yes
+                                            Iya
                                         </button>
                                         <button
                                             onClick={handleConfirmRefreshNo}
                                             className="rounded-full px-5 py-2.5 border border-gray-300 bg-white text-gray-700"
                                         >
-                                            No
+                                            Tidak
                                         </button>
                                     </div>
                                 </div>

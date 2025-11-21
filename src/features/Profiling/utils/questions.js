@@ -1,62 +1,58 @@
+// Question data model documentation:
+// - type: "number" | "scale"
+//   * number: pilih bilangan bulat 1–10 (tidak membutuhkan field options)
+//   * scale: skala Likert 1..5 (label ditentukan di UI; tidak membutuhkan field options)
+// - text: teks pertanyaan yang ditampilkan
+// Catatan: tipe "single" telah dihapus. Untuk menambah tipe baru, definisikan render dan validasi di Questioner.jsx.
 export const QUESTIONS = [
   {
     id: 1,
-    type: "single",
-    text: "Do you prefer large social gatherings or intimate settings?",
-    options: ["Large gatherings", "Small groups", "One-on-one", "Mix of both"],
+    type: "scale",
+    text: "Saya merasa percaya diri saat berinteraksi dengan orang baru.",
   },
   {
     id: 2,
-    type: "single",
-    text: "How do you recharge after a long day?",
-    options: ["Quiet time", "Exercise", "Socializing", "Creative hobby"],
+    type: "number",
+    text: "Seberapa nyaman kamu menghadiri acara besar? (1=tidak nyaman, 10=sangat nyaman)",
   },
   {
     id: 3,
-    type: "single",
-    text: "What best describes your communication style?",
-    options: ["Direct", "Diplomatic", "Analytical", "Expressive"],
+    type: "scale",
+    text: "I communicate clearly and effectively in most situations.",
   },
   {
     id: 4,
-    type: "single",
-    text: "How do you make decisions?",
-    options: ["Gut feeling", "Pros & cons", "Ask others", "Research deeply"],
+    type: "scale",
+    text: "I rely on structured analysis when making decisions.",
   },
   {
     id: 5,
-    type: "single",
-    text: "What motivates you most?",
-    options: ["Achievement", "Connection", "Stability", "Discovery"],
+    type: "scale",
+    text: "Achievement is a strong motivator for me.",
   },
   {
     id: 6,
-    type: "single",
-    text: "Your ideal weekend looks like…",
-    options: ["Outdoor adventures", "Stay home & relax", "Social events", "Learning something new"],
+    type: "scale",
+    text: "Saya lebih suka bekerja dalam kelompok daripada sendiri.",
   },
   {
     id: 7,
-    type: "single",
-    text: "In a team, you often…",
-    options: ["Lead", "Support", "Strategize", "Execute"],
+    type: "number",
+    text: "Seberapa sering kamu menghadiri meetup setiap bulan? (1-10)",
   },
   {
     id: 8,
-    type: "single",
-    text: "You handle conflict by…",
-    options: ["Address immediately", "Pause & reflect", "Seek mediation", "Avoid if possible"],
+    type: "scale",
+    text: "I address conflicts directly and constructively.",
   },
   {
     id: 9,
-    type: "single",
-    text: "When meeting new people, you…",
-    options: ["Start conversations", "Wait to be approached", "Observe first", "Stick with friends"],
+    type: "scale",
+    text: "I initiate conversations when meeting new people.",
   },
   {
     id: 10,
-    type: "single",
-    text: "Which environments help you thrive?",
-    options: ["Fast-paced", "Structured", "Flexible", "Collaborative"],
+    type: "scale",
+    text: "I thrive best in structured environments.",
   },
 ];
