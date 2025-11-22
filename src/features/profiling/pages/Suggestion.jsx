@@ -57,7 +57,7 @@ export default function Suggestion() {
     }, []);
 
     const goDashboard = () =>
-        navigate("/dashboard", {
+        navigate("/home", {
             state: {
                 from: "suggestion",
                 ...(state || {}),
