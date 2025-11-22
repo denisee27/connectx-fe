@@ -25,9 +25,9 @@ function Loading() {
 
 export default function Suggestion() {
     const navigate = useNavigate();
-    const { state } = useLocation();
-    const [loading, setLoading] = useState(Boolean(state?.submitting));
-    const [error, setError] = useState(state?.error || null);
+
+    const [loading, setLoading] = useState();
+    const [error, setError] = useState();
 
     useEffect(() => {
         if (loading) {
@@ -57,12 +57,7 @@ export default function Suggestion() {
     }, []);
 
     const goDashboard = () =>
-        navigate("/home", {
-            state: {
-                from: "suggestion",
-                ...(state || {}),
-            },
-        });
+        navigate("/home");
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
