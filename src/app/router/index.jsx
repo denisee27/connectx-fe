@@ -14,7 +14,6 @@ import ForbiddenPage from "../../shared/components/pages/ForbiddenPage.jsx";
 import ErrorBoundary from "../../shared/components/ui/ErrorBoundary.jsx";
 import NotFoundPage from "../../shared/components/pages/NotFoundPage.jsx";
 import MainPage from "../../features/landingPage/pages/MainPage.jsx";
-import FormProfile from "../../features/profiling/pages/FormProfile.jsx";
 import Questioner from "../../features/profiling/pages/Questioner.jsx";
 import Preference from "../../features/profiling/pages/Preference.jsx";
 import Suggestion from "../../features/profiling/pages/Suggestion.jsx";
@@ -25,6 +24,7 @@ import { Setting } from "../../features/setting/pages/Setting.jsx";
 import { NewEvent } from "../../features/newEvent/pages/NewEvent.jsx";
 import { Event } from "../../features/event/pages/Event.jsx";
 import { ListEvent } from "../../features/listEvent/pages/ListEvent.jsx";
+import FormProfile from "../../features/profiling/pages/FormProfile.jsx";
 const DashboardLazy = lazy(() => import("../../features/dashboard/pages/Dashboard.jsx"));
 
 const RootLayout = () => (
