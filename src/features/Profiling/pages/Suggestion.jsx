@@ -92,11 +92,13 @@ export default function Suggestion() {
                     </div>
                 )}
 
-                <div className="mt-8 flex justify-end">
-                    <button onClick={goDashboard} className="rounded-full px-6 py-2.5 border border-gray-300 text-gray-800 hover:bg-gray-100">
-                        Other Event
-                    </button>
-                </div>
+                {!loading && !error && (
+                    <div className="mt-8 flex justify-end">
+                        <button onClick={goDashboard} className="rounded-full px-6 py-2.5 border border-gray-300 text-gray-800 hover:bg-gray-100">
+                            Other Event
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

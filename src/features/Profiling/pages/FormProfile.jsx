@@ -15,9 +15,10 @@ const profileSchema = z.object({
         .string()
         .refine((val) => /^\d+$/.test(val), "Usia harus berupa angka")
         .transform((val) => Number(val))
-        .refine((val) => val >= 13 && val <= 120, "Usia harus 13-120"),
+        .refine((val) => val >= 15, "Usia minimum 15 tahun"),
     gender: z.string().min(1, "Pilih gender"),
     city: z.string().min(2, "Kota wajib diisi"),
+    country: z.string().min(2, "Negara wajib diisi"),
     occupation: z.string().min(2, "Pekerjaan wajib diisi"),
 });
 
@@ -36,6 +37,7 @@ export default function FormProfile() {
             age: "",
             gender: "",
             city: "",
+            country: "",
             occupation: "",
         },
         mode: "onBlur",
@@ -114,7 +116,7 @@ export default function FormProfile() {
             const origin = sessionStorage.getItem("profilingReloadOrigin");
             if (navType === "reload" && confirmed) {
                 // Reset semua inputan
-                reset({ fullName: "", age: "", gender: "", city: "", occupation: "" });
+                reset({ fullName: "", age: "", gender: "", city: "", country: "", occupation: "" });
                 try {
                     localStorage.removeItem("profilingAnswers");
                     localStorage.removeItem("profilingCurrentIndex");
@@ -150,7 +152,7 @@ export default function FormProfile() {
         localStorage.removeItem("profilingPreferences");
         localStorage.removeItem("profilingMeetUpPref");
         sessionStorage.setItem("profilingSkipRefreshModal", "1");
-        reset({ fullName: "", age: "", gender: "", city: "", occupation: "" }); refreshModal.close(); navigate("/profiling/questioner", { replace: true });
+        reset({ fullName: "", age: "", gender: "", city: "", country: "", occupation: "" }); refreshModal.close(); navigate("/profiling/questioner", { replace: true });
 
     };
 
@@ -205,6 +207,19 @@ export default function FormProfile() {
                                 <p className="mt-1 text-sm text-red-600">{errors.gender.message}</p>
                             )}
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
+                        <input
+                            type="text"
+                            placeholder="United States"
+                            className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            {...register("country")}
+                        />
+                        {errors.country && (
+                            <p className="mt-1 text-sm text-red-600">{errors.country.message}</p>
+                        )}
                     </div>
 
                     <div>

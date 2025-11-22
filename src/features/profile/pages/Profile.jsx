@@ -1,0 +1,165 @@
+import React from "react";
+import { MapPin, Briefcase, CalendarDays, Zap, Users, Brain, Target } from "lucide-react";
+
+/**
+ * Profile Page
+ * - Matches the provided reference layout
+ * - Uses current theme palette (bg-primary, bg-secondary, bg-muted, etc.)
+ * - Responsive and consistent spacing, radius, and shadows
+ */
+export const Profile = () => {
+    const user = {
+        name: "Budi Santoso",
+        city: "Jakarta",
+        role: "Software Engineer",
+        age: "28 tahun",
+        avatar:
+            "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=320&auto=format&fit=crop",
+        stats: [
+            { icon: CalendarDays, label: "Events", value: 15 },
+            { icon: Zap, label: "Meetups", value: 12 },
+            { icon: Users, label: "Dinners", value: 23 },
+        ],
+        mbti: {
+            type: "INTJ",
+            summary:
+                "Anda adalah seorang pemikir strategis dengan visi jangka panjang yang kuat. Anda cenderung analitis, mandiri, dan sangat menghargai efisiensi.",
+            interests: [
+                "Technology",
+                "Innovation",
+                "Strategic Planning",
+                "Problem Solving",
+                "Data Analysis",
+                "System Design",
+            ],
+            description: "Direct and efficient, prefers facts over emotions",
+        },
+    };
+
+    return (
+        <div className="min-h-screen mx-auto max-w-7xl bg-white text-foreground px-4 sm:px-8">
+            {/* Header Profile */}
+            <section className="rounded-3xl bg-gradient-to-br from-primary/10 to-secondary/10 p-6 sm:p-8 shadow-sm">
+                <div className="grid grid-cols-[96px_1fr] sm:grid-cols-[112px_1fr] gap-6 items-center">
+                    {/* Avatar */}
+                    <img
+                        src={user.avatar}
+                        alt={`${user.name} avatar`}
+                        className="h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover border-4 border-white shadow"
+                    />
+
+                    {/* Identity */}
+                    <div>
+                        <h1 className="text-4xl sm:text-5xl font-bold">{user.name}</h1>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            <Badge icon={MapPin} text={user.city} />
+                            <Badge icon={Briefcase} text={user.role} />
+                            <Badge icon={CalendarDays} text={user.age} />
+                        </div>
+
+                        {/* Stats */}
+                        <div className="mt-6 grid grid-cols-3 gap-4 sm:max-w-md">
+                            {user.stats.map((s) => (
+                                <StatCard key={s.label} icon={s.icon} label={s.label} value={s.value} />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Main Content */}
+            <section className="mt-6 rounded-3xl border border-border bg-card shadow-sm">
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 sm:p-8">
+                    <div className="flex items-center gap-4">
+                        <div>
+                            <Brain size={30} className="text-primary" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl sm:text-2xl font-semibold">Analisis Kepribadian MBTI</h2>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Berdasarkan analisis mendalam dari respons kuesioner Anda
+                            </p>
+                        </div>
+                    </div>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-accent/20 px-3 py-1 text-sm font-medium text-accent-foreground">
+                        <Zap size={16} /> AI Powered
+                    </span>
+                </div>
+
+                {/* Summary */}
+                <div className="mx-6 sm:mx-8 mb-6 rounded-2xl bg-muted p-4 sm:p-5 border border-border">
+                    <h3 className="font-semibold mb-2">Ringkasan Kepribadian</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground">
+                        {user.mbti.summary} Dalam interaksi sosial, Anda lebih memilih percakapan yang mendalam dan bermakna daripada obrolan ringan. Anda memiliki kemampuan natural untuk melihat pola dan mengidentifikasi peluang yang mungkin terlewatkan oleh orang lain.
+                    </p>
+                </div>
+
+                {/* Interests */}
+                {/* <div className="px-6 sm:px-8">
+                    <h3 className="flex items-center gap-2 font-semibold">
+                        <Target size={25} className="text-primary" />
+                        Minat & Ketertarikan
+                    </h3>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                        {user.mbti.interests.map((i) => (
+                            <Chip key={i}>{i}</Chip>
+                        ))}
+                    </div>
+                </div> */}
+
+                {/* MBTI Type */}
+                <div className="mt-6 p-6 sm:p-8 border-t border-border">
+                    <h3 className="font-semibold mb-3">Tipe Kepribadian</h3>
+                    <div className="rounded-2xl bg-muted p-5 border border-border">
+                        <div className="text-3xl sm:text-4xl font-extrabold text-primary tracking-wide">
+                            {user.mbti.type}
+                        </div>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            {user.mbti.description}
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    );
+};
+
+/** Small badge component */
+const Badge = ({ icon: Icon, text }) => (
+    <span className="inline-flex items-center gap-2 rounded-full border border-border bg-white/90 px-3 py-1 text-sm shadow-sm">
+        <Icon size={16} className="text-muted-foreground" />
+        {text}
+    </span>
+);
+
+/** Navigation chip */
+const NavChip = ({ children, active = false }) => (
+    <button
+        type="button"
+        className={
+            "rounded-full px-4 py-2 text-sm transition-colors " +
+            (active ? "bg-primary text-white" : "bg-muted hover:bg-primary/10")
+        }
+    >
+        {children}
+    </button>
+);
+
+/** Stat card */
+const StatCard = ({ icon: Icon, label, value }) => (
+    <div className="rounded-2xl bg-card border border-border p-4 text-center shadow-sm">
+        <div className="mx-auto mb-2 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
+            <Icon size={18} className="text-muted-foreground" />
+        </div>
+        <div className="text-2xl font-bold leading-none">{value}</div>
+        <div className="text-xs text-muted-foreground mt-1">{label}</div>
+    </div>
+);
+
+/** Chip */
+const Chip = ({ children }) => (
+    <span className="inline-flex items-center rounded-full border border-border bg-white px-3 py-1 text-sm shadow-sm">
+        {children}
+    </span>
+);

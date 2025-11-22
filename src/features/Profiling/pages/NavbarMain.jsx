@@ -1,12 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { NavLink, useNavigate } from "react-router-dom";
-import { CalendarDays, LayoutDashboard, Plus, ChevronDown } from "lucide-react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { createPortal } from "react-dom";
+import { CalendarDays, LayoutDashboard } from "lucide-react";
+import { useAuthStore } from "../../auth/stores/authStore";
 
 export default function NavbarMain({ user, onCreateEvent }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const popRef = useRef(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => {
     const onDocClick = (e) => {
@@ -26,11 +31,7 @@ export default function NavbarMain({ user, onCreateEvent }) {
   }, [open]);
 
   const handleCreate = () => {
-    if (typeof onCreateEvent === "function") {
-      onCreateEvent();
-    } else {
-      navigate("/dashboard");
-    }
+    navigate("/home/new-event");
   };
 
   return (
@@ -38,15 +39,15 @@ export default function NavbarMain({ user, onCreateEvent }) {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6">
         {/* Left: navigation */}
         <div className="flex items-center md:gap-6 gap-1 ">
-          <NavItem to="/home/schedule" icon={<CalendarDays size={18} />} label="Schedule" />
-          <NavItem to="/home" icon={<LayoutDashboard size={18} />} label="Dashboard" />
+          <NavItem to="/home/schedule" end icon={<CalendarDays size={18} />} label="Schedule" />
+          <NavItem to="/home" end icon={<LayoutDashboard size={18} />} label="Dashboard" />
         </div>
 
         {/* Right: actions */}
         <div className="flex items-center gap-4">
           <button
             onClick={handleCreate}
-            className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400"
           >
             Create Event
           </button>
@@ -55,7 +56,7 @@ export default function NavbarMain({ user, onCreateEvent }) {
             onClick={() => setOpen((v) => !v)}
             aria-haspopup="true"
             aria-expanded={open}
-            className="relative inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 p-1.5 text-white shadow-sm ring-1 ring-white/20 transition-transform duration-200 hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="relative inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-primary to-secondary p-1.5 text-white shadow-sm ring-1 ring-white/20 transition-transform duration-200 hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-purple-400"
           >
             <span className="grid h-10 w-10 place-items-center rounded-fulltext-lg">☺️</span>
           </button>
@@ -74,25 +75,38 @@ export default function NavbarMain({ user, onCreateEvent }) {
               </div>
             </div>
             <div className="mt-2">
-              <DropItem label="My Profile" onClick={() => navigate("/profile")} />
-              <DropItem label="Settings" onClick={() => navigate("/settings")} />
-              <DropItem label="Logout" onClick={() => navigate("/login")} />
+              <DropItem label="My Profile" onClick={() => navigate("/home/profile")} />
+              <DropItem label="Settings" onClick={() => navigate("/home/setting")} />
+              <DropItem label="Logout" onClick={() => setShowLogoutConfirm(true)} />
             </div>
           </div>
         </div>
       </div>
+      {showLogoutConfirm && (
+        <ConfirmLogoutModal
+          onCancel={() => setShowLogoutConfirm(false)}
+          onConfirm={async () => {
+            try {
+              await logout();
+            } finally {
+              navigate("/");
+            }
+          }}
+        />
+      )}
     </nav>
   );
 }
 
-function NavItem({ to, icon, label }) {
+function NavItem({ to, icon, label, end = false }) {
   return (
     <NavLink
       to={to}
+      end={end}
       className={({ isActive }) =>
-        `cursor-pointer  inline-flex font-bold items-center gap-2 rounded-full px-3 py-1 text-sm transition-colors duration-200 ${isActive
-          ? " text-black "
-          : "text-gray-400"
+        `cursor-pointer inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm transition-colors duration-200 ${isActive
+          ? "text-gray-900 underline underline-offset-4 decoration-2"
+          : "text-gray-400 hover:text-gray-700"
         }`
       }
     >
@@ -106,6 +120,7 @@ NavItem.propTypes = {
   to: PropTypes.string.isRequired,
   icon: PropTypes.node,
   label: PropTypes.string.isRequired,
+  end: PropTypes.bool,
 };
 
 function DropItem({ label, onClick }) {
@@ -131,4 +146,76 @@ NavbarMain.propTypes = {
     email: PropTypes.string,
   }),
   onCreateEvent: PropTypes.func,
+};
+
+/**
+ * Confirm Logout Modal with overlay, ESC, outside click, and fade transitions
+ */
+function ConfirmLogoutModal({ onCancel, onConfirm }) {
+  const [visible, setVisible] = useState(true); // for fade-in/out
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "Escape") close();
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, []);
+
+  const close = () => {
+    setVisible(false);
+    setTimeout(() => onCancel?.(), 180); // wait for fade-out
+  };
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      className={`fixed inset-0 z-[1000] ${visible ? "opacity-100" : "opacity-0"} transition-opacity duration-200`}
+    >
+      {/* Overlay (click to close) */}
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onMouseDown={close}
+      />
+
+      {/* Centered panel */}
+      <div className="absolute inset-0 grid place-items-center p-4">
+        <div
+          ref={panelRef}
+          onMouseDown={(e) => e.stopPropagation()}
+          className={`w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-xl transition-all duration-200 ${visible ? "scale-100 translate-y-0" : "scale-95 translate-y-1"}`}
+        >
+          <h3 className="text-lg font-semibold">Konfirmasi Logout</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Apakah Anda yakin ingin logout?</p>
+
+          <div className="mt-4 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={close}
+              className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium hover:bg-muted"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              className="rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-600"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+ConfirmLogoutModal.propTypes = {
+  onCancel: PropTypes.func,
+  onConfirm: PropTypes.func,
 };

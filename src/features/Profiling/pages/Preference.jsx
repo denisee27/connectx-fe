@@ -174,10 +174,9 @@ export default function Preference() {
                                 key={t}
                                 type="button"
                                 onClick={() => toggleTopic(t)}
-                                className={`text-left px-4 py-3 rounded-xl border transition ${active ? "border-black bg-gray-100" : "border-gray-200 hover:border-gray-300"
-                                    }`}
+                                className={`text-left px-4 py-3 rounded-xl border transition ${active ? "border-orange-500 bg-orange-50 text-orange-600" : "border-gray-200 hover:border-gray-300"}`}
                             >
-                                <span className="text-sm text-gray-800">{t}</span>
+                                <span className="text-sm">{t}</span>
                             </button>
                         );
                     })}
@@ -193,7 +192,7 @@ export default function Preference() {
                                     key={m}
                                     type="button"
                                     onClick={() => setMeetUp(m)}
-                                    className={`px-4 py-2 rounded-full border text-sm transition ${active ? "border-black bg-gray-100" : "border-gray-200 hover:border-gray-300"
+                                    className={`px-4 py-2 rounded-full border text-sm transition ${active ? "border-orange-500 bg-orange-50 text-orange-600" : "border-gray-200 hover:border-gray-300"
                                         }`}
                                 >
                                     {m}
@@ -205,7 +204,7 @@ export default function Preference() {
 
                 {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
-                <div className="mt-6 flex items-center justify-between">
+                <div className="mt-6 flex items-center justify-end">
                     <button
                         type="button"
                         onClick={continueNext}

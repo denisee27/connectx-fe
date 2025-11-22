@@ -14,11 +14,17 @@ import ForbiddenPage from "../../shared/components/pages/ForbiddenPage.jsx";
 import ErrorBoundary from "../../shared/components/ui/ErrorBoundary.jsx";
 import NotFoundPage from "../../shared/components/pages/NotFoundPage.jsx";
 import MainPage from "../../features/landingPage/pages/MainPage.jsx";
-import FormProfile from "../../features/Profiling/pages/FormProfile.jsx";
-import Questioner from "../../features/Profiling/pages/Questioner.jsx";
-import Preference from "../../features/Profiling/pages/Preference.jsx";
-import Suggestion from "../../features/Profiling/pages/Suggestion.jsx";
+import FormProfile from "../../features/profiling/pages/FormProfile.jsx";
+import Questioner from "../../features/profiling/pages/Questioner.jsx";
+import Preference from "../../features/profiling/pages/Preference.jsx";
+import Suggestion from "../../features/profiling/pages/Suggestion.jsx";
 import Dashboard from "../../features/dashboard/pages/Dashboard.jsx";
+import { Profile } from "../../features/profile/pages/Profile.jsx";
+import { Schedule } from "../../features/schedule/pages/Schedule.jsx";
+import { Setting } from "../../features/setting/pages/Setting.jsx";
+import { NewEvent } from "../../features/newEvent/pages/NewEvent.jsx";
+import { Event } from "../../features/event/pages/Event.jsx";
+import { ListEvent } from "../../features/listEvent/pages/ListEvent.jsx";
 const DashboardLazy = lazy(() => import("../../features/dashboard/pages/Dashboard.jsx"));
 
 const RootLayout = () => (
@@ -43,7 +49,6 @@ export const router = createBrowserRouter([
           { path: "/profiling/preference", element: <Preference /> },
           { path: "/profiling/form", element: <FormProfile /> },
           { path: "/profiling/suggestion", element: <Suggestion /> },
-          { path: "/dashboard", element: <DashboardLazy /> },
         ],
       },
       {
@@ -58,6 +63,12 @@ export const router = createBrowserRouter([
             element: <MainLayout />,
             children: [
               { index: true, element: <Dashboard /> },
+              { path: "profile", element: <Profile /> },
+              { path: "new-event", element: <NewEvent /> },
+              { path: "list-event", element: <ListEvent /> },
+              { path: "setting", element: <Setting /> },
+              { path: "event/:id", element: <Event /> },
+              { path: "schedule", element: <Schedule /> },
             ],
           },
         ],
