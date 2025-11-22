@@ -70,7 +70,7 @@ export default function FormProfile() {
 
             // Navigate to suggestion page with loading indicator
             navigate("/profiling/suggestion", { state: { submitting: true } });
-            await submitProfiling(payload);
+            // await submitProfiling(payload);
             // Clear temporary storage on success
             try {
                 localStorage.removeItem("profilingAnswers");
@@ -81,7 +81,7 @@ export default function FormProfile() {
             navigate("/profiling/suggestion", { replace: true, state: { success: true } });
         } catch (e) {
             const message = e?.response?.data?.message || e?.message || "Gagal mengirim data";
-            navigate("/profiling/suggestion", { replace: true, state: { error: message } });
+            // navigate("/profiling/suggestion", { replace: true, state: { error: message } });
         }
     };
 

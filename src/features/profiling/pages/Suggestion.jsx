@@ -29,12 +29,12 @@ export default function Suggestion() {
     const [loading, setLoading] = useState();
     const [error, setError] = useState();
 
-    useEffect(() => {
-        if (loading) {
-            const t = setTimeout(() => setLoading(false), 3200);
-            return () => clearTimeout(t);
-        }
-    }, [loading]);
+    // useEffect(() => {
+    //     if (loading) {
+    //         const t = setTimeout(() => setLoading(false), 3200);
+    //         return () => clearTimeout(t);
+    //     }
+    // }, [loading]);
 
     const cards = useMemo(() => {
         return [
@@ -56,8 +56,9 @@ export default function Suggestion() {
         ];
     }, []);
 
-    const goDashboard = () =>
+    const goDashboard = () => {
         navigate("/home");
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
@@ -67,7 +68,7 @@ export default function Suggestion() {
                     <p className="text-gray-600">Curated events that match your preferences</p>
                 </div>
 
-                {loading && <Loading />}
+                {/* {loading && <Loading />} */}
                 {error && (
                     <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 mb-4">
                         {error}
