@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Briefcase, CalendarDays, Zap, Users, Brain, Target } from "lucide-react";
+import { MapPin, Briefcase, CalendarDays, Zap, Users, Brain, Mail, Globe, User } from "lucide-react";
 
 /**
  * Profile Page
@@ -13,6 +13,9 @@ export const Profile = () => {
         city: "Jakarta",
         role: "Software Engineer",
         age: "28 tahun",
+        email: "budi.santoso@example.com",
+        country: "Indonesia",
+        gender: "Laki-laki",
         avatar:
             "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=320&auto=format&fit=crop",
         stats: [
@@ -40,25 +43,30 @@ export const Profile = () => {
         <div className="min-h-screen mx-auto max-w-7xl bg-white text-foreground px-4 sm:px-8">
             {/* Header Profile */}
             <section className="rounded-3xl bg-gradient-to-br from-primary/10 to-secondary/10 p-6 sm:p-8 shadow-sm">
-                <div className="grid grid-cols-[96px_1fr] sm:grid-cols-[112px_1fr] gap-6 items-center">
+                <div className="flex flex-col items-center text-center sm:grid sm:grid-cols-[112px_1fr] sm:items-center sm:gap-6 sm:text-left">
                     {/* Avatar */}
                     <img
                         src={user.avatar}
                         alt={`${user.name} avatar`}
-                        className="h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover border-4 border-white shadow"
+                        className="h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover border-4 border-white shadow mx-auto sm:mx-0"
                     />
 
                     {/* Identity */}
                     <div>
                         <h1 className="text-4xl sm:text-5xl font-bold">{user.name}</h1>
-                        <div className="mt-3 flex flex-wrap gap-2">
+                        <div className="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
+                            {/* Basic info */}
                             <Badge icon={MapPin} text={user.city} />
                             <Badge icon={Briefcase} text={user.role} />
                             <Badge icon={CalendarDays} text={user.age} />
+                            {/* User info badges */}
+                            <Badge icon={Mail} text={user.email} />
+                            <Badge icon={Globe} text={user.country} />
+                            <Badge icon={User} text={user.gender} />
                         </div>
 
                         {/* Stats */}
-                        <div className="mt-6 grid grid-cols-3 gap-4 sm:max-w-md">
+                        <div className="mt-6 grid grid-cols-3 gap-4 sm:max-w-md mx-auto sm:mx-0">
                             {user.stats.map((s) => (
                                 <StatCard key={s.label} icon={s.icon} label={s.label} value={s.value} />
                             ))}
@@ -94,19 +102,6 @@ export const Profile = () => {
                         {user.mbti.summary} Dalam interaksi sosial, Anda lebih memilih percakapan yang mendalam dan bermakna daripada obrolan ringan. Anda memiliki kemampuan natural untuk melihat pola dan mengidentifikasi peluang yang mungkin terlewatkan oleh orang lain.
                     </p>
                 </div>
-
-                {/* Interests */}
-                {/* <div className="px-6 sm:px-8">
-                    <h3 className="flex items-center gap-2 font-semibold">
-                        <Target size={25} className="text-primary" />
-                        Minat & Ketertarikan
-                    </h3>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                        {user.mbti.interests.map((i) => (
-                            <Chip key={i}>{i}</Chip>
-                        ))}
-                    </div>
-                </div> */}
 
                 {/* MBTI Type */}
                 <div className="mt-6 p-6 sm:p-8 border-t border-border">

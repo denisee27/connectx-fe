@@ -56,7 +56,7 @@ export default function NavbarMain({ user, onCreateEvent }) {
             onClick={() => setOpen((v) => !v)}
             aria-haspopup="true"
             aria-expanded={open}
-            className="relative inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-primary to-secondary p-1.5 text-white shadow-sm ring-1 ring-white/20 transition-transform duration-200 hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="relative inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-primary to-secondary p-1.5 text-white shadow-sm ring-1 ring-white/20 transition-transform duration-200 hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <span className="grid h-7 w-7 place-items-center rounded-fulltext-lg">
               <UserRound />
@@ -70,7 +70,9 @@ export default function NavbarMain({ user, onCreateEvent }) {
               }`}
           >
             <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 text-lg">☺️</div>
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-tr from-primary to-secondary text-lg">
+                <UserRound />
+              </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{user?.name || "Guest User"}</p>
                 <p className="truncate text-xs text-gray-300">{user?.email || "guest@example.com"}</p>

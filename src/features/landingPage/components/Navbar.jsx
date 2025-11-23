@@ -72,7 +72,7 @@ export const Navbar = () => {
                     </div>
                 </div>
             </div>
-            <div className="md:hidden" style={{ height: '100vh' }}>
+            <div className="md:hidden h-16">
                 <StaggeredMenu
                     className="flex md:hidden"
                     position="right"
@@ -86,6 +86,7 @@ export const Navbar = () => {
                     colors={['var(--color-accent)', 'var(--color-secondary)']}
                     logoUrl={logo}
                     accentColor="var(--color-primary)"
+                    isFixed={true}
                     onMenuOpen={() => console.log('Menu opened')}
                     onMenuClose={() => console.log('Menu closed')}
                 />
