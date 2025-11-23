@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown, Globe, LogOut } from "lucide-react";
 import logo from "../../../assets/logo/main-logo-black.svg";
 import StaggeredMenu from "../utils/staggeredMenu/StaggeredMenu";
+import { resetProfilingAll } from "../../profiling/utils/reset";
 
 export const Navbar = () => {
     const navigate = useNavigate();
@@ -63,7 +64,7 @@ export const Navbar = () => {
                                     </div>
                                 </button>
 
-                                <button className="rounded-xl px-4 py-2 bg-black text-white font-semibold hover:bg-gray-800 cursor-pointer transition-all duration-150 text-sm" onClick={() => navigate("/profiling/questioner")} >
+                                <button className="rounded-xl px-4 py-2 bg-black text-white font-semibold hover:bg-gray-800 cursor-pointer transition-all duration-150 text-sm" onClick={() => { resetProfilingAll(); navigate("/profiling/questioner"); }} >
                                     Start Now
                                 </button>
                             </div>

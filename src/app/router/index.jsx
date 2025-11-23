@@ -21,6 +21,7 @@ import { Setting } from "../../features/setting/pages/Setting.jsx";
 import { NewEvent } from "../../features/newEvent/pages/NewEvent.jsx";
 import { Event } from "../../features/event/pages/Event.jsx";
 import { ListEvent } from "../../features/listEvent/pages/ListEvent.jsx";
+import DetailCategory from "../../features/detailCategory/pages/DetailCategory.jsx";
 import FormProfile from "../../features/profiling/pages/FormProfile.jsx";
 import Questioner from "../../features/profiling/pages/Questioner.jsx";
 import Preference from "../../features/profiling/pages/Preference.jsx";
@@ -66,8 +67,9 @@ export const router = createBrowserRouter([
               { path: "profile", element: <Profile /> },
               { path: "new-event", element: <NewEvent /> },
               { path: "list-event", element: <ListEvent /> },
+              { path: "category/:slug", element: <DetailCategory /> },
               { path: "setting", element: <Setting /> },
-              { path: "event/:id", element: <Event /> },
+              { path: "event/:slug", element: <Event /> },
               { path: "schedule", element: <Schedule /> },
             ],
           },

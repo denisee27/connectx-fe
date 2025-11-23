@@ -50,7 +50,7 @@ export default function Questioner() {
             next[index] = { id: q.id, value };
             try {
                 localStorage.setItem("profilingAnswers", JSON.stringify(next));
-            } catch (_) {}
+            } catch (_) { }
             return next;
         });
     };
@@ -92,7 +92,7 @@ export default function Questioner() {
                 throw new Error("Mohon jawab semua pertanyaan dulu.");
             }
             localStorage.setItem("profilingAnswers", JSON.stringify(answered));
-            try { localStorage.setItem("profilingCurrentIndex", String(index)); } catch (_) {}
+            try { localStorage.setItem("profilingCurrentIndex", String(index)); } catch (_) { }
             setSuccess(true);
             navigate("/profiling/preference");
         } catch (e) {
@@ -145,7 +145,7 @@ export default function Questioner() {
                     sessionStorage.removeItem("profilingReloadConfirmed");
                     sessionStorage.removeItem("profilingReloadOrigin");
                 }
-            } catch (_) {}
+            } catch (_) { }
         } else if (fromPreference) {
             try {
                 const idxRaw = localStorage.getItem("profilingCurrentIndex");
@@ -162,7 +162,7 @@ export default function Questioner() {
             } catch (_) {
                 setIndex(0);
             }
-            try { sessionStorage.removeItem("profilingReturn"); } catch (_) {}
+            try { sessionStorage.removeItem("profilingReturn"); } catch (_) { }
         } else {
             // Fresh mount: hydrate from storage if available
             try {
@@ -178,13 +178,13 @@ export default function Questioner() {
                 if (Number.isFinite(idx)) {
                     setIndex(Math.max(0, Math.min(idx, total - 1)));
                 }
-            } catch (_) {}
+            } catch (_) { }
         }
     }, [total]);
 
     // Persist current index whenever it changes
     useEffect(() => {
-        try { localStorage.setItem("profilingCurrentIndex", String(index)); } catch (_) {}
+        try { localStorage.setItem("profilingCurrentIndex", String(index)); } catch (_) { }
     }, [index]);
 
     const handleConfirmRefreshYes = () => {
@@ -200,17 +200,17 @@ export default function Questioner() {
                             const parsed = JSON.parse(saved);
                             if (Array.isArray(parsed) && parsed.length === total) return parsed;
                         }
-                    } catch (_) {}
+                    } catch (_) { }
                     return Array(total).fill(null);
                 }
                 return prev;
             });
             setIndex(0);
-            try { localStorage.setItem("profilingCurrentIndex", "0"); } catch (_) {}
+            try { localStorage.setItem("profilingCurrentIndex", "0"); } catch (_) { }
         } catch (err) {
             // Error handling: gagal reset index/state
             setError("Gagal kembali ke pertanyaan pertama. Silakan coba lagi.");
-            try { navigate("/profiling/questioner", { replace: true }); } catch (_) {}
+            try { navigate("/profiling/questioner", { replace: true }); } catch (_) { }
         }
     };
 
@@ -286,7 +286,7 @@ export default function Questioner() {
                     )}
                 </div>
 
-                
+
 
                 {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
                 {success && <p className="mt-4 text-sm text-green-600">Berhasil dikirim!</p>}
@@ -316,7 +316,7 @@ export default function Questioner() {
                             disabled={!canNext || loading}
                             className="rounded-full px-6 py-2.5 bg-orange-500 text-white font-semibold disabled:opacity-50"
                         >
-                            {loading ? "Submitting..." : "Submit"}
+                            {loading ? "Next Step..." : "Continue"}
                         </button>
                     )}
                 </div>

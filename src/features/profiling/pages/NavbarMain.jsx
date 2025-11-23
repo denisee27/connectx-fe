@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { CalendarDays, LayoutDashboard } from "lucide-react";
+import { CalendarDays, LayoutDashboard, UserRound } from "lucide-react";
 import { useAuthStore } from "../../auth/stores/authStore";
 
 export default function NavbarMain({ user, onCreateEvent }) {
@@ -58,7 +58,9 @@ export default function NavbarMain({ user, onCreateEvent }) {
             aria-expanded={open}
             className="relative inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-primary to-secondary p-1.5 text-white shadow-sm ring-1 ring-white/20 transition-transform duration-200 hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-purple-400"
           >
-            <span className="grid h-10 w-10 place-items-center rounded-fulltext-lg">☺️</span>
+            <span className="grid h-7 w-7 place-items-center rounded-fulltext-lg">
+              <UserRound />
+            </span>
           </button>
 
           {/* Dropdown */}
@@ -75,9 +77,9 @@ export default function NavbarMain({ user, onCreateEvent }) {
               </div>
             </div>
             <div className="mt-2">
-              <DropItem label="My Profile" onClick={() => navigate("/home/profile")} />
-              <DropItem label="Settings" onClick={() => navigate("/home/setting")} />
-              <DropItem label="Logout" onClick={() => setShowLogoutConfirm(true)} />
+              <DropItem label="My Profile" onClick={() => { navigate("/home/profile"), setOpen(false) }} />
+              <DropItem label="Settings" onClick={() => { navigate("/home/setting"), setOpen(false) }} />
+              <DropItem label="Logout" onClick={() => { setShowLogoutConfirm(true), setOpen(false) }} />
             </div>
           </div>
         </div>

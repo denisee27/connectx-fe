@@ -23,6 +23,43 @@ function Loading() {
     );
 }
 
+function EventCard({ id, image, title, venue, category, city, dateText, onDetail }) {
+    return (
+        <article
+            role="article"
+            className="group overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-orange-500"
+        >
+            <div className="relative h-44 md:h-48 w-full overflow-hidden rounded-t-2xl">
+                <img
+                    src={image}
+                    alt={title}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
+                />
+            </div>
+            <div className="p-5">
+                <h3 className="text-xl font-semibold text-gray-900 tracking-tight">{title}</h3>
+                <p className="mt-1 text-sm text-gray-600">{venue}</p>
+                <p className="mt-3 text-sm text-gray-700">
+                    <span className="font-medium text-gray-800">{category}</span>
+                    <span className="mx-2 text-gray-400">•</span>
+                    <span className="text-gray-700">{city}</span>
+                </p>
+                <p className="mt-3 text-base font-medium text-gray-900">{dateText}</p>
+                <button
+                    type="button"
+                    aria-label={`Lihat detail untuk ${title}`}
+                    onClick={() => onDetail?.(id)}
+                    className="mt-4 w-full rounded-full bg-primary text-white py-2.5 font-semibold tracking-wide transition-colors duration-150 hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+                >
+                    Detail Event
+                </button>
+            </div>
+        </article>
+    );
+}
+
 export default function Suggestion() {
     const navigate = useNavigate();
 
@@ -39,26 +76,42 @@ export default function Suggestion() {
     const cards = useMemo(() => {
         return [
             {
-                title: "Women in Tech Meetup",
-                desc: "Connect with peers in a warm and collaborative setting.",
-                meta: "Jakarta • Fri, 7 PM",
+                id: "chefs-table-night",
+                image: "https://images.unsplash.com/photo-1519985176271-adb1088fa94c?w=1200&auto=format&fit=crop&q=60",
+                title: "Chef's Table Night",
+                venue: "Senayan Park Mall",
+                category: "Food & Drink",
+                city: "Jakarta",
+                dateText: "Kam, 27 Nov 2025, 19.00",
             },
             {
-                title: "Mindful Wellness Circle",
-                desc: "Gentle sharing and guided relaxation with small group.",
-                meta: "Bandung • Sat, 10 AM",
+                id: "coffee-community",
+                image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&auto=format&fit=crop&q=60",
+                title: "Coffee & Community",
+                venue: "Melawai",
+                category: "Networking",
+                city: "Jakarta",
+                dateText: "Sab, 29 Nov 2025, 10.00",
             },
             {
-                title: "Coffee & Books",
-                desc: "Casual 1:1 or small group conversation over favorite reads.",
-                meta: "Online • Sun, 4 PM",
+                id: "book-talk-tea",
+                image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&auto=format&fit=crop&q=60",
+                title: "Book Talk & Tea",
+                venue: "Tebet",
+                category: "Arts & Culture",
+                city: "Jakarta",
+                dateText: "Min, 30 Nov 2025, 16.00",
             },
         ];
     }, []);
 
     const goDashboard = () => {
-        navigate("/home");
-    }
+        navigate("/home", { replace: true });
+    };
+
+    const handleDetail = (id) => {
+        navigate(`/home/event/${id}`);
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
@@ -76,14 +129,9 @@ export default function Suggestion() {
                 )}
 
                 {!loading && !error && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
                         {cards.map((c, idx) => (
-                            <div key={idx} className="rounded-xl border border-gray-200 p-5">
-                                <h3 className="text-lg font-semibold text-gray-900">{c.title}</h3>
-                                <p className="mt-2 text-sm text-gray-600">{c.desc}</p>
-                                <p className="mt-3 text-xs text-gray-500">{c.meta}</p>
-                                <button className="mt-4 w-full rounded-full bg-orange-500 text-white py-2 font-semibold">View Details</button>
-                            </div>
+                            <EventCard key={idx} {...c} onDetail={handleDetail} />
                         ))}
                     </div>
                 )}

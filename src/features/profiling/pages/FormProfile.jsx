@@ -8,6 +8,7 @@ import { buildProfilingPayload } from "../utils/payload";
 import { QUESTIONS } from "../utils/questions";
 import { useModal } from "../../../core/stores/uiStore";
 import { TriangleAlert } from "lucide-react";
+import { resetProfilingAll, resetProfilingStorage, DEFAULT_PROFILE_VALUES } from "../utils/reset";
 
 const profileSchema = z.object({
     fullName: z.string().min(2, "Nama minimal 2 karakter"),
@@ -71,12 +72,8 @@ export default function FormProfile() {
             // Navigate to suggestion page with loading indicator
             navigate("/profiling/suggestion", { state: { submitting: true } });
             // await submitProfiling(payload);
-            // Clear temporary storage on success
-            try {
-                localStorage.removeItem("profilingAnswers");
-                localStorage.removeItem("profilingPreferences");
-                localStorage.removeItem("profilingMeetUpPref");
-            } catch (_) { }
+            // Reset persisted inputs and form values
+            resetProfilingAll(reset);
             // Pass results via state or rely on suggestion page to fetch
             navigate("/profiling/suggestion", { replace: true, state: { success: true } });
         } catch (e) {
@@ -115,15 +112,9 @@ export default function FormProfile() {
             const confirmed = sessionStorage.getItem("profilingReloadConfirmed") === "1";
             const origin = sessionStorage.getItem("profilingReloadOrigin");
             if (navType === "reload" && confirmed) {
-                // Reset semua inputan
-                reset({ fullName: "", age: "", gender: "", city: "", country: "", occupation: "" });
-                try {
-                    localStorage.removeItem("profilingAnswers");
-                    localStorage.removeItem("profilingCurrentIndex");
-                    localStorage.removeItem("profilingPreferences");
-                    localStorage.removeItem("profilingMeetUpPref");
-                    localStorage.removeItem("profilingProfile");
-                } catch (_) { }
+                // Reset semua inputan dan storage
+                reset(DEFAULT_PROFILE_VALUES);
+                resetProfilingStorage();
                 // Hapus flag
                 try {
                     sessionStorage.removeItem("profilingReloadConfirmed");
@@ -147,13 +138,10 @@ export default function FormProfile() {
     };
 
     const confirmYes = () => {
-        localStorage.removeItem("profilingProfile");
-        localStorage.removeItem("profilingAnswers");
-        localStorage.removeItem("profilingPreferences");
-        localStorage.removeItem("profilingMeetUpPref");
         sessionStorage.setItem("profilingSkipRefreshModal", "1");
-        reset({ fullName: "", age: "", gender: "", city: "", country: "", occupation: "" }); refreshModal.close(); navigate("/profiling/questioner", { replace: true });
-
+        resetProfilingAll(reset);
+        refreshModal.close();
+        navigate("/profiling/questioner", { replace: true });
     };
 
     return (
@@ -257,6 +245,7 @@ export default function FormProfile() {
                         </button>
                     </div>
                 </form>
+                
                 {refreshModal.isOpen && (
                     <div>
                         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" aria-hidden="true" />

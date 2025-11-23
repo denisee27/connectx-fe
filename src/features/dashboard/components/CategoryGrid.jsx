@@ -10,6 +10,7 @@ import {
   HeartPulse,
   Coins,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const iconMap = {
   teknologi: Cpu,
@@ -36,13 +37,14 @@ function randomPastelColor() {
   return `hsl(${h} ${s}% ${l}%)`;
 }
 
-function CategoryTile({ label, countText, icon, accent }) {
+function CategoryTile({ label, countText, icon, accent, onClick }) {
   const Icon = iconMap[icon] || Cpu;
   const accentCls = accent && accentColorMap[accent] ? accentColorMap[accent] : null;
   const pastel = React.useMemo(() => randomPastelColor(), []);
   return (
     <button
       type="button"
+      onClick={onClick}
       className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-colors duration-200 hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       <div
@@ -67,13 +69,14 @@ CategoryTile.propTypes = {
 };
 
 export default function CategoryGrid({ title = "Jelajahi berdasarkan Kategori", categories }) {
+  const navigate = useNavigate();
   return (
     <section className="rounded-2xl bg-card py-6">
       <h3 className="mb-4 text-2xl font-semibold text-card-foreground">{title}</h3>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {categories?.length ? (
           categories.map((c, idx) => (
-            <CategoryTile key={`${c.label}-${idx}`} label={c.label} countText={c.countText} icon={c.icon} accent={c.accent} />
+            <CategoryTile key={`${c.label}-${idx}`} label={c.label} countText={c.countText} icon={c.icon} accent={c.accent} onClick={() => navigate(`/home/category/${c.label}`)} />
           ))
         ) : (
           <div className="col-span-full rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
