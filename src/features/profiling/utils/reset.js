@@ -2,12 +2,14 @@
 // Clears all persisted inputs and resets form values to defaults
 
 export const DEFAULT_PROFILE_VALUES = {
-  fullName: "",
+  name: "",
   age: "",
   gender: "",
   city: "",
   country: "",
   occupation: "",
+  phoneNumber: "",
+  email: "",
 };
 
 function safeRemove(storage, key) {

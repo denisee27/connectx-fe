@@ -13,11 +13,11 @@ import { QUESTIONS } from "../utils/questions";
  */
 
 const LIKERT = [
-    { label: "Sangat Setuju", value: 5 },
-    { label: "Setuju", value: 4 },
-    { label: "Netral", value: 3 },
-    { label: "Kurang Setuju", value: 2 },
-    { label: "Tidak Setuju", value: 1 },
+    { label: "Sangat Setuju", value: "Sangat Setuju" },
+    { label: "Setuju", value: "Setuju" },
+    { label: "Netral", value: "Netral" },
+    { label: "Kurang Setuju", value: "Kurang Setuju" },
+    { label: "Tidak Setuju", value: "Tidak Setuju" },
 ];
 
 function ProgressBar({ current, total }) {
@@ -44,38 +44,46 @@ export default function Questioner() {
 
     const q = QUESTIONS[index];
 
-    const selectOption = (value) => {
+    const selectOption = (answer) => {
         setAnswers((prev) => {
             const next = [...prev];
-            next[index] = { id: q.id, value };
+            next[index] = {
+                id: q.id,
+                type: q.type,
+                category: q.category,
+                statement: q.text,
+                answer,
+            };
             try {
                 localStorage.setItem("profilingAnswers", JSON.stringify(next));
-            } catch (_) { }
+            } catch (_) {}
             return next;
         });
     };
 
     const selectNumber = (value) => {
-        const num = Number(value);
-        if (Number.isFinite(num)) {
-            selectOption(num);
-        }
+        // Store as string
+        selectOption(String(value));
     };
 
     const selectScale = (value) => {
-        const num = Number(value);
-        if ([1, 2, 3, 4, 5].includes(num)) {
-            selectOption(num);
-        }
+        // value is already a string from the radio button
+        selectOption(value);
     };
 
     const next = () => setIndex((i) => Math.min(i + 1, total - 1));
     const prev = () => setIndex((i) => Math.max(i - 1, 0));
 
     const isValidAnswer = () => {
-        const a = answers[index]?.value;
-        if (q.type === "number") return Number.isInteger(a) && a >= 1 && a <= 10;
-        if (q.type === "scale") return Number.isInteger(a) && a >= 1 && a <= 5;
+        const a = answers[index]?.answer;
+        if (q.type === "number") {
+            if (typeof a !== 'string') return false;
+            const num = Number(a);
+            return Number.isInteger(num) && num >= 1 && num <= 10;
+        }
+        if (q.type === "scale") {
+            return typeof a === 'string' && LIKERT.some(opt => opt.value === a);
+        }
         return false;
     };
     const canNext = isValidAnswer();
@@ -237,7 +245,7 @@ export default function Questioner() {
                     {q.type === "number" && (
                         <div className="grid grid-cols-5 sm:grid-cols-10 gap-3">
                             {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
-                                const selected = answers[index]?.value === n;
+                                const selected = answers[index]?.answer === String(n);
                                 return (
                                     <button
                                         key={n}
@@ -261,7 +269,7 @@ export default function Questioner() {
                     {q.type === "scale" && (
                         <ul className="space-y-3">
                             {LIKERT.map((opt) => {
-                                const selected = answers[index]?.value === opt.value;
+                                const selected = answers[index]?.answer === opt.value;
                                 return (
                                     <li key={opt.label}>
                                         <label className={"flex items-center gap-3 px-4 py-3 rounded-xl border transition " + (selected ? "border-orange-400 bg-orange-50" : "border-gray-200 hover:border-orange-300 hover:bg-orange-50")}>
@@ -285,9 +293,6 @@ export default function Questioner() {
                         <p className="text-sm text-red-600">Tipe pertanyaan tidak dikenali.</p>
                     )}
                 </div>
-
-
-
                 {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
                 {success && <p className="mt-4 text-sm text-green-600">Berhasil dikirim!</p>}
 

@@ -1,9 +1,8 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { submitProfiling } from "../api";
 import { buildProfilingPayload } from "../utils/payload";
 import { QUESTIONS } from "../utils/questions";
 import { useModal } from "../../../core/stores/uiStore";
@@ -11,7 +10,7 @@ import { TriangleAlert } from "lucide-react";
 import { resetProfilingAll, resetProfilingStorage, DEFAULT_PROFILE_VALUES } from "../utils/reset";
 
 const profileSchema = z.object({
-    fullName: z.string().min(2, "Nama minimal 2 karakter"),
+    name: z.string().min(2, "Nama minimal 2 karakter"),
     age: z
         .string()
         .refine((val) => /^\d+$/.test(val), "Usia harus berupa angka")
@@ -21,6 +20,8 @@ const profileSchema = z.object({
     city: z.string().min(2, "Kota wajib diisi"),
     country: z.string().min(2, "Negara wajib diisi"),
     occupation: z.string().min(2, "Pekerjaan wajib diisi"),
+    phoneNumber: z.string().min(10, "Nomor telepon minimal 10 karakter"),
+    email: z.string().email("Format email tidak valid"),
 });
 
 export default function FormProfile() {
@@ -34,12 +35,14 @@ export default function FormProfile() {
     } = useForm({
         resolver: zodResolver(profileSchema),
         defaultValues: {
-            fullName: "",
+            name: "",
             age: "",
             gender: "",
             city: "",
             country: "",
             occupation: "",
+            phoneNumber: "",
+            email: "",
         },
         mode: "onBlur",
     });
@@ -58,17 +61,9 @@ export default function FormProfile() {
             }
 
             const payload = buildProfilingPayload(data, answers);
-            const questionTextById = QUESTIONS.reduce((acc, curr) => {
-                acc[curr.id] = curr.text || "";
-                return acc;
-            }, {});
-            payload.answers = (payload.answers || []).map((a) => ({
-                ...a,
-                question: questionTextById[a.id],
-            }));
             payload.preferences = preferences;
             payload.meetUpPreference = meetUp;
-
+            console.log(payload);
             // Navigate to suggestion page with loading indicator
             navigate("/profiling/suggestion", { state: { submitting: true } });
             // await submitProfiling(payload);
@@ -161,11 +156,38 @@ export default function FormProfile() {
                             type="text"
                             placeholder="John Doe"
                             className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                            {...register("fullName")}
+                            {...register("name")}
                         />
-                        {errors.fullName && (
-                            <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
+                        {errors.name && (
+                            <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
                         )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                            <input
+                                type="text"
+                                placeholder="example@connectx.com"
+                                className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                {...register("email")}
+                            />
+                            {errors.email && (
+                                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                            <input
+                                type="text"
+                                placeholder="081234567890"
+                                className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                {...register("phoneNumber")}
+                            />
+                            {errors.phoneNumber && (
+                                <p className="mt-1 text-sm text-red-600">{errors.phoneNumber.message}</p>
+                            )}
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -197,30 +219,31 @@ export default function FormProfile() {
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
-                        <input
-                            type="text"
-                            placeholder="United States"
-                            className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                            {...register("country")}
-                        />
-                        {errors.country && (
-                            <p className="mt-1 text-sm text-red-600">{errors.country.message}</p>
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
-                        <input
-                            type="text"
-                            placeholder="New York, NY"
-                            className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                            {...register("city")}
-                        />
-                        {errors.city && (
-                            <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>
-                        )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
+                            <input
+                                type="text"
+                                placeholder="United States"
+                                className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                {...register("country")}
+                            />
+                            {errors.country && (
+                                <p className="mt-1 text-sm text-red-600">{errors.country.message}</p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                            <input
+                                type="text"
+                                placeholder="New York, NY"
+                                className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                {...register("city")}
+                            />
+                            {errors.city && (
+                                <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>
+                            )}
+                        </div>
                     </div>
 
                     <div>
@@ -245,7 +268,7 @@ export default function FormProfile() {
                         </button>
                     </div>
                 </form>
-                
+
                 {refreshModal.isOpen && (
                     <div>
                         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" aria-hidden="true" />
