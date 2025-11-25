@@ -20,10 +20,10 @@ function formatEventDate(isoString) {
   return `${dayName}, ${dayNum} ${monthName}, ${hh}.${mm}`;
 }
 
-function FeaturedItem({ title, venue, dateISO, thumbnail }) {
+function FeaturedItem({ title, venue, dateISO, thumbnail, slug }) {
   const displayDate = formatEventDate(dateISO);
   return (
-    <div className="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-3 transition-shadow duration-200 hover:shadow-sm">
+    <div onClick={() => window.open(`/home/event/${slug}`)} className="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-3 transition-shadow duration-200 hover:shadow-sm">
       {thumbnail && (
         <img
           src={thumbnail}
@@ -51,7 +51,7 @@ export default function FeaturedGrid({ items }) {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {items?.map((e, i) => (
-        <FeaturedItem key={`featured-grid-${i}`} title={e.title} venue={e.venue} dateISO={e.dateISO} thumbnail={e.thumbnail} />
+        <FeaturedItem key={`featured-grid-${i}`} title={e.title} venue={e.address} dateISO={e.datetime} thumbnail={"https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop"} slug={e.slug} />
       ))}
     </div>
   );

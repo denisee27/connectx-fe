@@ -1,42 +1,61 @@
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { buildProfilingPayload } from "../utils/payload";
-import { QUESTIONS } from "../utils/questions";
 import { useModal } from "../../../core/stores/uiStore";
 import { TriangleAlert } from "lucide-react";
 import { resetProfilingAll, resetProfilingStorage, DEFAULT_PROFILE_VALUES } from "../utils/reset";
+import { useCities, useCountries, useProfilling } from "../hooks/useProfiling";
+import { useAuthStore } from "../../auth/stores/authStore";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const profileSchema = z.object({
     name: z.string().min(2, "Nama minimal 2 karakter"),
-    age: z
-        .string()
-        .refine((val) => /^\d+$/.test(val), "Usia harus berupa angka")
-        .transform((val) => Number(val))
-        .refine((val) => val >= 15, "Usia minimum 15 tahun"),
+    bornDate: z.date({
+        required_error: "Tanggal lahir wajib diisi",
+        invalid_type_error: "Format tanggal tidak valid",
+    }),
     gender: z.string().min(1, "Pilih gender"),
-    city: z.string().min(2, "Kota wajib diisi"),
-    country: z.string().min(2, "Negara wajib diisi"),
+    city: z.string().min(1, "Kota wajib diisi"),
+    country: z.string().min(1, "Negara wajib diisi"),
     occupation: z.string().min(2, "Pekerjaan wajib diisi"),
     phoneNumber: z.string().min(10, "Nomor telepon minimal 10 karakter"),
     email: z.string().email("Format email tidak valid"),
 });
 
+/**
+ * @typedef {object} ProfillingResponse
+ * @property {object} data
+ * @property {string} data.accessToken
+ * @property {Array<any>} data.rooms
+ */
+
 export default function FormProfile() {
     const navigate = useNavigate();
     const refreshModal = useModal("profilingRefreshConfirm");
+    const [selectedCountry, setSelectedCountry] = useState("");
+    const { mutateAsync: postProfiling } = useProfilling();
+    const setAuth = useAuthStore((state) => state.setAuth);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const { data: countries, isLoading: isLoadingCountries, isError: isErrorCountries } = useCountries();
+    const { data: cities, isLoading: isLoadingCities, isError: isErrorCities } = useCities(selectedCountry);
+
     const {
         register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting },
+        control,
+        setValue,
     } = useForm({
         resolver: zodResolver(profileSchema),
         defaultValues: {
             name: "",
-            age: "",
+            bornDate: new Date(),
             gender: "",
             city: "",
             country: "",
@@ -48,39 +67,13 @@ export default function FormProfile() {
     });
 
     const onSubmit = async (data) => {
-        try {
-            const answersRaw = localStorage.getItem("profilingAnswers");
-            const prefsRaw = localStorage.getItem("profilingPreferences");
-            const meetUpRaw = localStorage.getItem("profilingMeetUpPref");
-            const answers = answersRaw ? JSON.parse(answersRaw) : null;
-            const preferences = prefsRaw ? JSON.parse(prefsRaw) : [];
-            const meetUp = meetUpRaw ? JSON.parse(meetUpRaw) : "";
-
-            if (!answers || !Array.isArray(answers) || answers.length !== QUESTIONS.length) {
-                throw new Error("Jawaban quiz tidak lengkap. Silakan kembali ke langkah sebelumnya.");
-            }
-
-            const payload = buildProfilingPayload(data, answers);
-            payload.preferences = preferences;
-            payload.meetUpPreference = meetUp;
-            console.log(payload);
-            // Navigate to suggestion page with loading indicator
-            navigate("/profiling/suggestion", { state: { submitting: true } });
-            // await submitProfiling(payload);
-            // Reset persisted inputs and form values
-            resetProfilingAll(reset);
-            // Pass results via state or rely on suggestion page to fetch
-            navigate("/profiling/suggestion", { replace: true, state: { success: true } });
-        } catch (e) {
-            const message = e?.response?.data?.message || e?.message || "Gagal mengirim data";
-            // navigate("/profiling/suggestion", { replace: true, state: { error: message } });
-        }
+        navigate("/profiling/suggestion", { state: { profileData: data } });
     };
 
     // Alert sebelum refresh dan tandai reload terkonfirmasi
     useEffect(() => {
         const onBeforeUnload = (e) => {
-            const message = "Perubahan Anda belum disimpan. Apakah Anda yakin ingin memuat ulang halaman?";
+            const message = "Your changes have not been saved. Are you sure you want to reload the page?";
             e.preventDefault();
             e.returnValue = message;
             return message;
@@ -192,15 +185,38 @@ export default function FormProfile() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Age *</label>
-                            <input
-                                type="text"
-                                placeholder="25"
-                                className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                                {...register("age")}
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Born Date *</label>
+                            <Controller
+                                control={control}
+                                name="bornDate"
+                                render={({ field }) => (
+                                    <DatePicker
+                                        // --- 1. Basic Settings ---
+                                        placeholderText="DD/MM/YYYY"
+                                        onChange={(date) => field.onChange(date)}
+                                        // Logika aman anti-error "Invalid time value"
+                                        selected={field.value && !isNaN(new Date(field.value).getTime()) ? new Date(field.value) : null}
+                                        dateFormat="dd/MM/yyyy"
+
+                                        // --- 2. Styling ---
+                                        wrapperClassName="w-full"
+                                        className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
+
+                                        // --- 3. FITUR PILIH BULAN & TAHUN (Ini yang Anda cari) ---
+                                        showMonthDropdown  // Munculkan dropdown Bulan (Januari - Desember)
+                                        showYearDropdown   // Munculkan dropdown Tahun
+                                        dropdownMode="select" // Tampilkan sebagai Select Box biasa (lebih rapi daripada scroll)
+
+                                        // --- 4. Batasan Tanggal Lahir ---
+                                        maxDate={new Date()} // Tidak boleh pilih tanggal masa depan
+                                        minDate={new Date("1940-01-01")} // (Opsional) Batas paling tua
+                                        yearDropdownItemNumber={100} // Agar tahunnya muncul banyak ke belakang (misal 100 tahun ke belakang)
+                                        scrollableYearDropdown // Agar dropdown tahun bisa discroll panjang
+                                    />
+                                )}
                             />
-                            {errors.age && (
-                                <p className="mt-1 text-sm text-red-600">{errors.age.message}</p>
+                            {errors.bornDate && (
+                                <p className="mt-1 text-sm text-red-600">{errors.bornDate.message}</p>
                             )}
                         </div>
                         <div>
@@ -222,24 +238,48 @@ export default function FormProfile() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
-                            <input
-                                type="text"
-                                placeholder="United States"
-                                className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            <select
                                 {...register("country")}
-                            />
+                                onChange={(e) => setSelectedCountry(e.target.value)}
+                                className="w-full rounded-xl border border-gray-200 px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            >
+                                <option value="">Select a country</option>
+                                {isLoadingCountries ? (
+                                    <option>Loading...</option>
+                                ) : isErrorCountries ? (
+                                    <option>Error loading countries</option>
+                                ) : (
+                                    countries?.map((country) => (
+                                        <option key={country.id} value={country.id}>
+                                            {country.name}
+                                        </option>
+                                    ))
+                                )}
+                            </select>
                             {errors.country && (
                                 <p className="mt-1 text-sm text-red-600">{errors.country.message}</p>
                             )}
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
-                            <input
-                                type="text"
-                                placeholder="New York, NY"
-                                className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            <select
                                 {...register("city")}
-                            />
+                                disabled={!selectedCountry || isLoadingCities || isErrorCities}
+                                className="w-full rounded-xl border border-gray-200 px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:bg-gray-100"
+                            >
+                                <option value="">Select a city</option>
+                                {isLoadingCities ? (
+                                    <option>Loading...</option>
+                                ) : isErrorCities ? (
+                                    <option>Error loading cities</option>
+                                ) : (
+                                    cities?.map((city) => (
+                                        <option key={city.id} value={city.id}>
+                                            {city.name}
+                                        </option>
+                                    ))
+                                )}
+                            </select>
                             {errors.city && (
                                 <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>
                             )}
@@ -261,10 +301,17 @@ export default function FormProfile() {
                     <div className="gap-2 flex flex-col">
                         <button
                             type="submit"
-                            disabled={isSubmitting}
-                            className="w-full hover:cursor-pointer rounded-full bg-primary hover:bg-secondary text-white font-semibold py-3 transition-colors disabled:opacity-60"
+                            disabled={isSubmitting || isLoading}
+                            className="w-full hover:cursor-pointer rounded-full bg-primary hover:bg-secondary text-white font-semibold py-3 transition-colors disabled:opacity-60 flex items-center justify-center"
                         >
-                            Continue
+                            {isLoading ? (
+                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            ) : (
+                                "Continue"
+                            )}
                         </button>
                     </div>
                 </form>

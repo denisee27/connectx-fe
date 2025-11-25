@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useProfilling } from "../hooks/useProfiling";
+import { useAuthStore } from "../../auth/stores/authStore";
+import { buildProfilingPayload } from "../utils/payload";
+import { resetProfilingAll } from "../utils/reset";
 
 function Loading() {
     return (
@@ -62,47 +66,62 @@ function EventCard({ id, image, title, venue, category, city, dateText, onDetail
 
 export default function Suggestion() {
     const navigate = useNavigate();
+    const { state } = useLocation();
+    const { profileData } = state || {};
+    const { mutateAsync: postProfiling } = useProfilling();
+    const setAuth = useAuthStore((state) => state.setAuth);
 
-    const [loading, setLoading] = useState();
-    const [error, setError] = useState();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [suggestedRooms, setSuggestedRooms] = useState([]);
 
-    // useEffect(() => {
-    //     if (loading) {
-    //         const t = setTimeout(() => setLoading(false), 3200);
-    //         return () => clearTimeout(t);
-    //     }
-    // }, [loading]);
+    useEffect(() => {
+        if (!profileData) {
+            setError("Data profil tidak ditemukan. Silakan kembali ke halaman sebelumnya.");
+            setLoading(false);
+            return;
+        }
 
-    const cards = useMemo(() => {
-        return [
-            {
-                id: "chefs-table-night",
-                image: "https://images.unsplash.com/photo-1519985176271-adb1088fa94c?w=1200&auto=format&fit=crop&q=60",
-                title: "Chef's Table Night",
-                venue: "Senayan Park Mall",
-                category: "Food & Drink",
-                city: "Jakarta",
-                dateText: "Kam, 27 Nov 2025, 19.00",
-            },
-            {
-                id: "coffee-community",
-                image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&auto=format&fit=crop&q=60",
-                title: "Coffee & Community",
-                venue: "Melawai",
-                category: "Networking",
-                city: "Jakarta",
-                dateText: "Sab, 29 Nov 2025, 10.00",
-            },
-            {
-                id: "book-talk-tea",
-                image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&auto=format&fit=crop&q=60",
-                title: "Book Talk & Tea",
-                venue: "Tebet",
-                category: "Arts & Culture",
-                city: "Jakarta",
-                dateText: "Min, 30 Nov 2025, 16.00",
-            },
-        ];
+        const submitProfile = async () => {
+            try {
+                const answersRaw = localStorage.getItem("profilingAnswers");
+                const prefsRaw = localStorage.getItem("profilingPreferences");
+                const meetUpRaw = localStorage.getItem("profilingMeetUpPref");
+                const answers = answersRaw ? JSON.parse(answersRaw) : null;
+                const preferences = prefsRaw ? JSON.parse(prefsRaw) : [];
+                const meetUp = meetUpRaw ? JSON.parse(meetUpRaw) : "";
+
+                if (!answers || !Array.isArray(answers)) {
+                    throw new Error("Jawaban quiz tidak lengkap.");
+                }
+
+                // const today = new Date();
+                // const birthDate = new Date(profileData.bornDate);
+                // let age = today.getFullYear() - birthDate.getFullYear();
+                // const m = today.getMonth() - birthDate.getMonth();
+                // if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                //     age--;
+                // }
+
+                const payload = buildProfilingPayload({ ...profileData }, answers);
+                payload.preferences = preferences;
+                payload.meetUpPreference = meetUp;
+
+                const response = await postProfiling({ data: payload });
+                console.log('res:', response)
+                setAuth({ user: null, accessToken: response.accessToken });
+                setSuggestedRooms(response.rooms);
+
+                resetProfilingAll(() => { });
+            } catch (e) {
+                const message = e?.response?.data?.message || e?.message || "Gagal mengirim data";
+                setError(message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        submitProfile();
     }, []);
 
     const goDashboard = () => {
@@ -121,7 +140,7 @@ export default function Suggestion() {
                     <p className="text-gray-600">Curated events that match your preferences</p>
                 </div>
 
-                {/* {loading && <Loading />} */}
+                {loading && <Loading />}
                 {error && (
                     <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 mb-4">
                         {error}
@@ -130,7 +149,7 @@ export default function Suggestion() {
 
                 {!loading && !error && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
-                        {cards.map((c, idx) => (
+                        {suggestedRooms.map((c, idx) => (
                             <EventCard key={idx} {...c} onDetail={handleDetail} />
                         ))}
                     </div>

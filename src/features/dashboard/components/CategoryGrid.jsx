@@ -45,17 +45,18 @@ function CategoryTile({ label, countText, icon, accent, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-colors duration-200 hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="cursor-pointer flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-colors duration-200 hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       <div
         className={`flex h-10 w-10 items-center justify-center rounded-full ${accentCls ? "text-primary-foreground " + accentCls : "text-gray-900"}`}
         style={!accentCls ? { backgroundColor: pastel } : undefined}
       >
-        <Icon size={20} strokeWidth={2} />
+        {icon}
+        {/* <Icon size={20} strokeWidth={2} /> */}
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-base font-semibold text-card-foreground">{label}</p>
-        <p className="text-sm text-muted-foreground">{countText}</p>
+        <p className="text-sm text-muted-foreground">{countText ? `${countText} Event` : "No upcoming events"}</p>
       </div>
     </button>
   );
@@ -68,7 +69,7 @@ CategoryTile.propTypes = {
   accent: PropTypes.string,
 };
 
-export default function CategoryGrid({ title = "Jelajahi berdasarkan Kategori", categories }) {
+export default function CategoryGrid({ title = "Browse by Vibe", categories }) {
   const navigate = useNavigate();
   return (
     <section className="rounded-2xl bg-card py-6">
@@ -76,7 +77,7 @@ export default function CategoryGrid({ title = "Jelajahi berdasarkan Kategori", 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {categories?.length ? (
           categories.map((c, idx) => (
-            <CategoryTile key={`${c.label}-${idx}`} label={c.label} countText={c.countText} icon={c.icon} accent={c.accent} onClick={() => navigate(`/home/category/${c.label}`)} />
+            <CategoryTile key={idx} label={c.name} countText={c._count?.rooms} icon={c.icon} accent={c.accent} onClick={() => navigate(`/home/category/${c.slug}`)} />
           ))
         ) : (
           <div className="col-span-full rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">

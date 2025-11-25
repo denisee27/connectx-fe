@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { MapPin, Users } from "lucide-react";
 import api from "../../../core/api/index.js";
+import { useCategory } from "../hooks/useCategory.js";
 
 // Utility: formatters
 const formatDateLabel = (iso) => {
@@ -38,7 +39,7 @@ function HeaderSection({ title, description, iconUrl }) {
                         {iconUrl ? (
                             <img src={iconUrl} alt="Kategori" className="h-full w-full object-cover" />
                         ) : (
-                            <div className="flex h-full w-full items-center justify-center text-muted-foreground">Ilustrasi</div>
+                            <div className="flex h-full w-full items-center justify-center text-muted-foreground">Image</div>
                         )}
                     </div>
                 </div>
@@ -77,6 +78,7 @@ const EventCard = ({ time, title, location, guests, thumbnail, onClick }) => (
 export const DetailCategory = ({ category: categoryProp, events: eventsProp, fetchEvents }) => {
     const navigate = useNavigate();
     const { slug } = useParams();
+    const { data: categoryData, isPending: isPendingCategory } = useCategory(slug);
 
     const [category, setCategory] = useState(() => (
         categoryProp || {
@@ -174,7 +176,7 @@ export const DetailCategory = ({ category: categoryProp, events: eventsProp, fet
 
     // Raw items: no client-side sorting. Keep order as provided.
     const items = useMemo(() => (Array.isArray(events) ? events : []), [events]);
-
+    console.log('items', items);
     // No pagination
 
     const onDetail = useCallback((id) => navigate(`/home/event/${id}`), [navigate]);
@@ -182,7 +184,7 @@ export const DetailCategory = ({ category: categoryProp, events: eventsProp, fet
     return (
         <div className="bg-white">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 text-foreground ">
-                <HeaderSection title={category.title} description={category.description} iconUrl={category.iconUrl} />
+                <HeaderSection title={categoryData?.name} description={categoryData?.description} iconUrl={categoryData?.banner} />
 
                 {/* Loading / Error */}
                 {loading && (
@@ -200,8 +202,8 @@ export const DetailCategory = ({ category: categoryProp, events: eventsProp, fet
 
                         {(() => {
                             const grouped = new Map();
-                            items.forEach((it) => {
-                                const { dayLabel, dayName, time } = labelDay(it.dateISO);
+                            categoryData?.rooms?.forEach((it) => {
+                                const { dayLabel, dayName, time } = labelDay(it.datetime);
                                 const entry = grouped.get(dayLabel) || { dayLabel, dayName, items: [] };
                                 entry.items.push({ ...it, time });
                                 grouped.set(dayLabel, entry);
@@ -231,10 +233,10 @@ export const DetailCategory = ({ category: categoryProp, events: eventsProp, fet
                                                             key={`${day.dayLabel}-${ev.id}`}
                                                             time={ev.time}
                                                             title={ev.title}
-                                                            location={ev.city}
-                                                            guests={typeof ev.guests === "number" ? (ev.guests === 0 ? "No guests" : `${ev.guests} guests`) : ev.guests}
-                                                            thumbnail={ev.thumbnail}
-                                                            onClick={() => onDetail(ev.id)}
+                                                            location={ev?.city?.name}
+                                                            guests={typeof ev._count.participants === "number" ? (ev._count.participants === 0 ? "No guests" : `${ev._count.participants} guests`) : ev._count.participants}
+                                                            thumbnail={ev.banner}
+                                                            onClick={() => onDetail(ev.slug)}
                                                         />
                                                     ))}
                                                 </div>
@@ -246,7 +248,6 @@ export const DetailCategory = ({ category: categoryProp, events: eventsProp, fet
                         })()}
                     </div>
                 )}
-
             </div>
         </div>
     );

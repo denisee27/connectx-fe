@@ -1,5 +1,6 @@
 import React from "react";
 import { MapPin, Briefcase, CalendarDays, Zap, Users, Brain, Mail, Globe, User } from "lucide-react";
+import { useProfile } from "../hooks/useProfile";
 
 /**
  * Profile Page
@@ -8,7 +9,8 @@ import { MapPin, Briefcase, CalendarDays, Zap, Users, Brain, Mail, Globe, User }
  * - Responsive and consistent spacing, radius, and shadows
  */
 export const Profile = () => {
-    const user = {
+    const { data: profile, isLoading, isError } = useProfile();
+    const user = profile?.data || {
         name: "Budi Santoso",
         city: "Jakarta",
         role: "Software Engineer",
@@ -46,8 +48,8 @@ export const Profile = () => {
                 <div className="flex flex-col items-center text-center sm:grid sm:grid-cols-[112px_1fr] sm:items-center sm:gap-6 sm:text-left">
                     {/* Avatar */}
                     <img
-                        src={user.avatar}
-                        alt={`${user.name} avatar`}
+                        src={profile?.profilePicture || user.avatar}
+                        alt={profile?.name}
                         className="h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover border-4 border-white shadow mx-auto sm:mx-0"
                     />
 
@@ -56,9 +58,9 @@ export const Profile = () => {
                         <h1 className="text-4xl sm:text-5xl font-bold">{user.name}</h1>
                         <div className="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
                             {/* Basic info */}
-                            <Badge icon={MapPin} text={user.city} />
-                            <Badge icon={Briefcase} text={user.role} />
-                            <Badge icon={CalendarDays} text={user.age} />
+                            <Badge icon={MapPin} text={profile?.city?.name} />
+                            <Badge icon={Briefcase} text={profile?.occupation} />
+                            <Badge icon={CalendarDays} text={profile?.bornDate} />
                             {/* User info badges */}
                             <Badge icon={Mail} text={user.email} />
                             <Badge icon={Globe} text={user.country} />

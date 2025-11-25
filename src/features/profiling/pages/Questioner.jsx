@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 // Submission now happens in FormProfile per revised flow
 import { useModal } from "../../../core/stores/uiStore";
 import { TriangleAlert } from "lucide-react";
-import { QUESTIONS } from "../utils/questions";
+import { useQuestions } from "../hooks/useProfiling";
 
 /**
  * Questioner type rendering and validation rules
@@ -13,11 +13,11 @@ import { QUESTIONS } from "../utils/questions";
  */
 
 const LIKERT = [
-    { label: "Sangat Setuju", value: "Sangat Setuju" },
-    { label: "Setuju", value: "Setuju" },
-    { label: "Netral", value: "Netral" },
-    { label: "Kurang Setuju", value: "Kurang Setuju" },
-    { label: "Tidak Setuju", value: "Tidak Setuju" },
+    { label: "Strongly Agree", value: "Strongly Agree" },       // Sangat Setuju
+    { label: "Agree", value: "Agree" },                         // Setuju
+    { label: "Neutral", value: "Neutral" },                     // Netral
+    { label: "Disagree", value: "Disagree" },                   // Kurang Setuju
+    { label: "Strongly Disagree", value: "Strongly Disagree" }, // Tidak Setuju
 ];
 
 function ProgressBar({ current, total }) {
@@ -34,15 +34,23 @@ function ProgressBar({ current, total }) {
 
 export default function Questioner() {
     const navigate = useNavigate();
-    const total = QUESTIONS.length;
+    const { data: questionsData, isPending: isPendingQuestions, error: questionsError } = useQuestions();
+    const questions = useMemo(() => questionsData?.mbti_questions || [], [questionsData]);
+
+    const total = questions.length;
     const [index, setIndex] = useState(0);
-    const [answers, setAnswers] = useState(Array(total).fill(null));
+    const [answers, setAnswers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
     const refreshModal = useModal("profilingRefreshConfirm");
+    const q = questions[index];
 
-    const q = QUESTIONS[index];
+    useEffect(() => {
+        if (total > 0) {
+            setAnswers(Array(total).fill(null));
+        }
+    }, [total]);
 
     const selectOption = (answer) => {
         setAnswers((prev) => {
@@ -51,12 +59,12 @@ export default function Questioner() {
                 id: q.id,
                 type: q.type,
                 category: q.category,
-                statement: q.text,
+                statement: q.question, // Use q.question instead of q.text
                 answer,
             };
             try {
                 localStorage.setItem("profilingAnswers", JSON.stringify(next));
-            } catch (_) {}
+            } catch (_) { }
             return next;
         });
     };
@@ -75,6 +83,7 @@ export default function Questioner() {
     const prev = () => setIndex((i) => Math.max(i - 1, 0));
 
     const isValidAnswer = () => {
+        if (!q) return false; // Add guard for when q is not yet available
         const a = answers[index]?.answer;
         if (q.type === "number") {
             if (typeof a !== 'string') return false;
@@ -96,7 +105,7 @@ export default function Questioner() {
         setSuccess(false);
         try {
             const answered = (answers || []).filter(Boolean);
-            if (answered.length !== QUESTIONS.length) {
+            if (answered.length !== total) { // Use total instead of QUESTIONS.length
                 throw new Error("Mohon jawab semua pertanyaan dulu.");
             }
             localStorage.setItem("profilingAnswers", JSON.stringify(answered));
@@ -230,101 +239,146 @@ export default function Questioner() {
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
             <div className="w-full max-w-2xl bg-white shadow-md rounded-2xl p-8">
-                <div className="text-center mb-6">
-                    <h1 className="text-3xl font-semibold text-gray-900">Personality Quiz</h1>
-                    <p className="text-gray-500">Help us understand you better for perfect matches</p>
-                </div>
-
-                <div className="mb-4">
-                    <ProgressBar current={index + 1} total={total} />
-                </div>
-                <p className="text-center text-sm text-gray-600 mb-6">Question {index + 1} of {total}</p>
-
-                <div className="rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">{q.text}</h2>
-                    {q.type === "number" && (
-                        <div className="grid grid-cols-5 sm:grid-cols-10 gap-3">
-                            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
-                                const selected = answers[index]?.answer === String(n);
-                                return (
-                                    <button
-                                        key={n}
-                                        type="button"
-                                        onClick={() => selectNumber(n)}
-                                        aria-pressed={selected}
-                                        className={
-                                            "flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-lg border text-base sm:text-lg font-semibold transition " +
-                                            (selected
-                                                ? "border-orange-500 bg-orange-50 text-orange-600"
-                                                : "border-gray-200 bg-white text-gray-800 hover:border-orange-300")
-                                        }
-                                    >
-                                        {n}
-                                    </button>
-                                );
-                            })}
+                {isPendingQuestions ? (
+                    <div className="text-center">
+                        <p className="text-gray-600">Loading questions...</p>
+                    </div>
+                ) : questionsError ? (
+                    <div className="text-center">
+                        <p className="text-red-600">Failed to load questions: {questionsError.message}</p>
+                    </div>
+                ) : !q ? (
+                    <div className="text-center">
+                        <p className="text-gray-600">No questions available.</p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="text-center mb-6">
+                            <h1 className="text-3xl font-semibold text-gray-900">Personality Quiz</h1>
+                            <p className="text-gray-500">Help us understand you better for perfect matches</p>
                         </div>
-                    )}
 
-                    {q.type === "scale" && (
-                        <ul className="space-y-3">
-                            {LIKERT.map((opt) => {
-                                const selected = answers[index]?.answer === opt.value;
-                                return (
-                                    <li key={opt.label}>
-                                        <label className={"flex items-center gap-3 px-4 py-3 rounded-xl border transition " + (selected ? "border-orange-400 bg-orange-50" : "border-gray-200 hover:border-orange-300 hover:bg-orange-50")}>
-                                            <input
-                                                type="radio"
-                                                name={`likert-${q.id}`}
-                                                value={opt.value}
-                                                checked={selected}
-                                                onChange={(e) => selectScale(e.target.value)}
-                                                className="h-5 w-5 text-orange-500"
-                                            />
-                                            <span className="text-gray-800">{opt.label}</span>
-                                        </label>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    )}
+                        <div className="mb-4">
+                            <ProgressBar current={index + 1} total={total} />
+                        </div>
+                        <p className="text-center text-sm text-gray-600 mb-6">Question {index + 1} of {total}</p>
 
-                    {q.type !== "number" && q.type !== "scale" && (
-                        <p className="text-sm text-red-600">Tipe pertanyaan tidak dikenali.</p>
-                    )}
-                </div>
-                {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-                {success && <p className="mt-4 text-sm text-green-600">Berhasil dikirim!</p>}
+                        <div className="rounded-2xl border border-gray-200 p-6">
+                            <h2 className="text-xl font-semibold text-gray-900 mb-4">{q.question}</h2>
+                            {q.type === "number" && (
+                                <div className="flex flex-col gap-3">
+                                    <div className="text-xs text-gray-500 px-1">
+                                        <span>Does not describe me</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        {Array.from({ length: 5 }, (_, i) => i + 1).map((n) => {
+                                            const selected = answers[index]?.answer === String(n);
+                                            return (
+                                                <button
+                                                    key={n}
+                                                    type="button"
+                                                    onClick={() => selectNumber(n)}
+                                                    aria-pressed={selected}
+                                                    className={
+                                                        "flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-lg border text-base sm:text-lg font-semibold transition " +
+                                                        (selected
+                                                            ? "border-orange-500 bg-orange-50 text-orange-600"
+                                                            : "border-gray-200 bg-white text-gray-800 hover:border-orange-300")
+                                                    }
+                                                >
+                                                    {n}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="flex justify-between">
+                                        {Array.from({ length: 5 }, (_, i) => i + 6).map((n) => {
+                                            const selected = answers[index]?.answer === String(n);
+                                            return (
+                                                <button
+                                                    key={n}
+                                                    type="button"
+                                                    onClick={() => selectNumber(n)}
+                                                    aria-pressed={selected}
+                                                    className={
+                                                        "flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-lg border text-base sm:text-lg font-semibold transition " +
+                                                        (selected
+                                                            ? "border-orange-500 bg-orange-50 text-orange-600"
+                                                            : "border-gray-200 bg-white text-gray-800 hover:border-orange-300")
+                                                    }
+                                                >
+                                                    {n}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="text-xs text-gray-500 px-1 text-right">
+                                        <span>Describes me perfectly</span>
+                                    </div>
+                                </div>
+                            )}
 
-                <div className="mt-6 flex items-center justify-between">
-                    <button
-                        type="button"
-                        onClick={() => (isFirst ? navigate("/") : prev())}
-                        disabled={loading}
-                        className="rounded-full px-5 py-2.5 border border-gray-300 text-gray-700 bg-white disabled:opacity-50"
-                    >
-                        {isFirst ? "Back to Home" : "Previous"}
-                    </button>
-                    {!isLast ? (
-                        <button
-                            type="button"
-                            onClick={next}
-                            disabled={!canNext || loading}
-                            className="rounded-full px-6 py-2.5 bg-orange-500 text-white font-semibold disabled:opacity-50"
-                        >
-                            Next
-                        </button>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={handleSubmit}
-                            disabled={!canNext || loading}
-                            className="rounded-full px-6 py-2.5 bg-orange-500 text-white font-semibold disabled:opacity-50"
-                        >
-                            {loading ? "Next Step..." : "Continue"}
-                        </button>
-                    )}
-                </div>
+                            {q.type === "scale" && (
+                                <ul className="space-y-3">
+                                    {LIKERT.map((opt) => {
+                                        const selected = answers[index]?.answer === opt.value;
+                                        return (
+                                            <li key={opt.label}>
+                                                <label className={"flex items-center gap-3 px-4 py-3 rounded-xl border transition " + (selected ? "border-orange-400 bg-orange-50" : "border-gray-200 hover:border-orange-300 hover:bg-orange-50")}>
+                                                    <input
+                                                        type="radio"
+                                                        name={`likert-${q.id}`}
+                                                        value={opt.value}
+                                                        checked={selected}
+                                                        onChange={(e) => selectScale(e.target.value)}
+                                                        className="h-5 w-5 text-orange-500"
+                                                    />
+                                                    <span className="text-gray-800">{opt.label}</span>
+                                                </label>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            )}
+
+                            {q.type !== "number" && q.type !== "scale" && (
+                                <p className="text-sm text-red-600">Tipe pertanyaan tidak dikenali.</p>
+                            )}
+                        </div>
+                        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+                        {success && <p className="mt-4 text-sm text-green-600">Berhasil dikirim!</p>}
+
+                        <div className="mt-6 flex items-center justify-between">
+                            <button
+                                type="button"
+                                onClick={() => (isFirst ? navigate("/") : prev())}
+                                disabled={loading}
+                                className="rounded-full px-5 py-2.5 border border-gray-300 text-gray-700 bg-white disabled:opacity-50"
+                            >
+                                {isFirst ? "Back to Home" : "Previous"}
+                            </button>
+                            {!isLast ? (
+                                <button
+                                    type="button"
+                                    onClick={next}
+                                    disabled={!canNext || loading}
+                                    className="rounded-full px-6 py-2.5 bg-orange-500 text-white font-semibold disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={handleSubmit}
+                                    disabled={!canNext || loading}
+                                    className="rounded-full px-6 py-2.5 bg-orange-500 text-white font-semibold disabled:opacity-50"
+                                >
+                                    {loading ? "Next Step..." : "Continue"}
+                                </button>
+                            )}
+                        </div>
+                    </>
+                )}
 
                 {/* Refresh Confirmation Modal */}
                 {refreshModal.isOpen && (

@@ -8,166 +8,67 @@ import CategoryGrid from "../components/CategoryGrid.jsx";
 import CityGrid from "../components/CityGrid.jsx";
 import PopularTabs from "../components/PopularTabs.jsx";
 import FeaturedGrid from "../components/FeaturedGrid.jsx";
+import { useCategories, useHighlights, usePopular, useRegionRooms } from "../hooks/useDashboard.js";
 
 function DashboardContent({ initial }) {
   const navigate = useNavigate();
-  const { state } = useLocation();
-
-  const featured = useMemo(
-    () => [
-      {
-        title: "Tech That Matters: Build AI Products That Actually Sell",
-        venue: "Goltrix Treasury Tower - Coworking",
-        dateISO: "2025-11-21T18:00:00",
-        meta: "Tech • Jakarta",
-        badge: "Unggulan",
-        thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop",
-      },
-      {
-        title: "Web3 Social Hour by Yepp, Supported by Gate & Trevea",
-        venue: "The Bar",
-        dateISO: "2025-11-22T19:00:00",
-        meta: "Blockchain • Jakarta",
-        thumbnail: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=800&auto=format&fit=crop",
-      },
-      {
-        title: "Yepp Friends Open - Americana Format",
-        venue: "Pabloon",
-        dateISO: "2025-11-23T16:00:00",
-        meta: "Community • Bandung",
-        thumbnail: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=800&auto=format&fit=crop",
-      },
-      {
-        title: "UR RUN CONNECT",
-        venue: "STUA Coffee",
-        dateISO: "2025-11-23T06:00:00",
-        meta: "Running • Bandung",
-        thumbnail: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=800&auto=format&fit=crop",
-      },
-      {
-        title: "Yepp Friends Open - Americana Format",
-        venue: "Pabloon",
-        dateISO: "2025-11-23T16:00:00",
-        meta: "Community • Bandung",
-        thumbnail: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=800&auto=format&fit=crop",
-      },
-      {
-        title: "Yepp Friends Open - Americana Format",
-        venue: "Pabloon",
-        dateISO: "2025-11-23T16:00:00",
-        meta: "Community • Bandung",
-        thumbnail: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=800&auto=format&fit=crop",
-      },
-    ],
-    []
-  );
-
+  const { data: categories = [], isPending: isPendingCategory } = useCategories();
+  const { data: highlights = [], isPending: isHeighlights } = useHighlights();
+  const { data: popular = [], isPending: isPopular } = usePopular();
+  const { data: regions = [], isPending: isRegions } = useRegionRooms();
+  console.log(regions);
   // Tabs for "Acara Populer"
-  const popularTabs = useMemo(
-    () => [
-      { key: "dinner", label: "Dinner" },
-      { key: "meetup", label: "Meetup" },
-      { key: "event", label: "Event" },
-    ],
-    []
-  );
+  const popularTabs = useMemo(() => {
+    if (!popular || popular.length === 0) {
+      return [
+        { key: "dinner", label: "Dinner" },
+        { key: "meetup", label: "Meetup" },
+        { key: "event", label: "Event" },
+      ];
+    }
+    const types = [...new Set(popular.map((p) => p.type))];
+    const tabOrder = ["dinner", "meetup", "event"];
+    const tabs = tabOrder
+      .filter((type) => types.includes(type))
+      .map((type) => ({
+        key: type,
+        label: type.charAt(0).toUpperCase() + type.slice(1),
+      }));
+    return tabs.length > 0 ? tabs : [{ key: "event", label: "Event" }];
+  }, [popular]);
+
   const [popularActive, setPopularActive] = React.useState("dinner");
 
-  const popularData = useMemo(
-    () => ({
-      dinner: [
-        {
-          title: "Chef's Table Night",
-          venue: "Senayan Park Mall",
-          dateISO: "2025-11-27T19:00:00",
-          meta: "Food & Drink • Jakarta",
-          thumbnail: "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=800&auto=format&fit=crop",
-        },
-        {
-          title: "Community Dinner Meetup",
-          venue: "Kemang District",
-          dateISO: "2025-12-02T19:00:00",
-          meta: "Food & Drink • Jakarta",
-          thumbnail: "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?q=80&w=800&auto=format&fit=crop",
-        },
-        {
-          title: "UR Team Strength Training Night",
-          venue: "Senayan Park Mall",
-          dateISO: "2025-11-27T19:00:00",
-          meta: "Fitness • Jakarta",
-          thumbnail: "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?q=80&w=800&auto=format&fit=crop",
-        },
-        {
-          title: "Wine & Talk",
-          venue: "Kuningan",
-          dateISO: "2025-12-06T20:00:00",
-          meta: "Food & Drink • Jakarta",
-          thumbnail: "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=800&auto=format&fit=crop",
-        },
-      ],
-      meetup: [
-        {
-          title: "React Jakarta Meetup",
-          venue: "Goltrix Treasury Tower",
-          dateISO: "2025-11-28T18:30:00",
-          meta: "Tech • Jakarta",
-          thumbnail: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop",
-        },
-        {
-          title: "Startup Coffee Chat",
-          venue: "SCBD",
-          dateISO: "2025-12-03T09:00:00",
-          meta: "Startup • Jakarta",
-          thumbnail: "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?q=80&w=800&auto=format&fit=crop",
-        },
-        {
-          title: "AI Builders Meetup",
-          venue: "Kota Kasablanka",
-          dateISO: "2025-12-08T18:00:00",
-          meta: "AI • Jakarta",
-          thumbnail: "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=800&auto=format&fit=crop",
-        },
-        {
-          title: "Open Source Night",
-          venue: "Blok M",
-          dateISO: "2025-12-12T19:00:00",
-          meta: "Community • Jakarta",
-          thumbnail: "https://images.unsplash.com/photo-1551836022-4c4c79ecde51?q=80&w=800&auto=format&fit=crop",
-        },
-      ],
-      event: [
-        {
-          title: "City Music Festival",
-          venue: "JIExpo Kemayoran",
-          dateISO: "2025-12-01T17:00:00",
-          meta: "Music • Jakarta",
-          thumbnail: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=800&auto=format&fit=crop",
-        },
-        {
-          title: "Product Conference",
-          venue: "Balai Kartini",
-          dateISO: "2025-12-05T09:00:00",
-          meta: "Conference • Jakarta",
-          thumbnail: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop",
-        },
-        {
-          title: "Art Expo Week",
-          venue: "Museum Nasional",
-          dateISO: "2025-12-09T11:00:00",
-          meta: "Art • Jakarta",
-          thumbnail: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800&auto=format&fit=crop",
-        },
-        {
-          title: "Dev Summit Day",
-          venue: "BSD Green Office Park",
-          dateISO: "2025-12-14T10:00:00",
-          meta: "Tech • Tangerang",
-          thumbnail: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=800&auto=format&fit=crop",
-        },
-      ],
-    }),
-    []
-  );
+  // Set initial active tab based on available data
+  React.useEffect(() => {
+    if (popularTabs.length > 0 && !popularTabs.find((t) => t.key === popularActive)) {
+      setPopularActive(popularTabs[0].key);
+    }
+  }, [popularTabs, popularActive]);
+
+  const popularData = useMemo(() => {
+    if (!popular || popular.length === 0) {
+      return { dinner: [], meetup: [], event: [] };
+    }
+    return popular.reduce((acc, item) => {
+      const type = item.type || "event"; // Default to 'event' if type is not specified
+      if (!acc[type]) {
+        acc[type] = [];
+      }
+      acc[type].push({
+        id: item.id,
+        title: item.title,
+        venue: item.address,
+        slug: item.slug,
+        dateISO: item.datetime,
+        meta: `${item.category?.name || "General"} • ${item.city?.name || "City"}`,
+        thumbnail: item.category?.banner
+          ? item.category.banner.trim().replace(/`/g, "")
+          : "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=800&auto=format&fit=crop",
+      });
+      return acc;
+    }, {});
+  }, [popular]);
 
   /**
    * FadeIn wrapper for smooth content transitions when tab changes
@@ -184,19 +85,6 @@ function DashboardContent({ initial }) {
     );
   }
 
-  const categoryTiles = useMemo(
-    () => [
-      { label: "Teknologi", countText: "2 rb Acara", icon: "teknologi" },
-      { label: "Makanan & Minuman", countText: "21 Acara", icon: "makanan" },
-      { label: "AI", countText: "2 rb Acara", icon: "ai" },
-      { label: "Seni & Budaya", countText: "1 rb Acara", icon: "seni" },
-      { label: "Iklim", countText: "405 Acara", icon: "iklim" },
-      { label: "Kebugaran", countText: "754 Acara", icon: "kebugaran" },
-      { label: "Kesehatan", countText: "1 rb Acara", icon: "kesehatan" },
-      { label: "Kripto", countText: "815 Acara", icon: "kripto" },
-    ],
-    []
-  );
 
   const cities = useMemo(
     () => [
@@ -223,7 +111,7 @@ function DashboardContent({ initial }) {
     []
   );
 
-  const regions = useMemo(
+  const regions123 = useMemo(
     () => [
       {
         key: "asia",
@@ -394,10 +282,9 @@ function DashboardContent({ initial }) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Temukan Acara</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Find Your Vibe</h1>
             <p className="mt-2 max-w-2xl text-gray-600">
-              Jelajahi acara populer di dekat Anda, telusuri berdasarkan kategori, atau lihat beberapa
-              kalender komunitas yang bagus.
+              Uncover exciting events happening right around the corner. Filter by your interests or explore our curated categories to find your perfect match.
             </p>
           </div>
         </div>
@@ -405,31 +292,31 @@ function DashboardContent({ initial }) {
         {/* Featured */}
         <div className="mt-10">
           <SectionHeader
-            title="Unggulan"
+            title="Spotlight"
             action={
               <button
                 onClick={() => navigate("/home/list-event")}
                 className="cursor-pointer rounded-full border border-gray-300 px-3 py-1.5 text-sm text-gray-800 transition-colors hover:bg-gray-100"
               >
-                Lihat Semua
+                View All
               </button>
             }
           />
-          <FeaturedGrid items={featured} />
+          <FeaturedGrid items={highlights} />
         </div>
 
         {/* Popular area */}
         <div className="mt-14">
           <SectionHeader
-            title="Acara Populer"
+            title="Trending Now"
             subtitle="Jakarta"
             action={<PopularTabs tabs={popularTabs} active={popularActive} onChange={setPopularActive} />}
           />
           <FadeIn deps={popularActive}>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {popularData[popularActive]?.map((e, i) => (
-                <div onClick={() => navigate(`/home/event/${e.id}`)}>
-                  <EventCard key={`popular-${popularActive}-${i}`} {...e} />
+                <div onClick={() => window.open(`/home/event/${e.slug}`)}>
+                  <EventCard key={i} {...e} />
                 </div>
               ))}
             </div>
@@ -438,12 +325,12 @@ function DashboardContent({ initial }) {
 
         {/* Categories */}
         <div className="mt-14">
-          <CategoryGrid categories={categoryTiles} />
+          <CategoryGrid categories={categories} />
         </div>
 
         {/* Explore Local */}
         <div className="mt-14">
-          <SectionHeader title="Jelajahi Acara Lokal" />
+          <SectionHeader title="Discover Local Event" />
           <CityGrid regions={regions} />
         </div>
       </div>

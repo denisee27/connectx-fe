@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import {
     MapPin,
     CalendarDays,
@@ -10,6 +10,8 @@ import {
     QrCode,
     CreditCard,
 } from "lucide-react";
+import { useEvent } from "../hooks/useEvent";
+import { format } from "date-fns";
 
 function Modal({ open, onClose, children }) {
     React.useEffect(() => {
@@ -73,23 +75,9 @@ function PasswordStrength({ value }) {
 
 export const Event = () => {
     const { state } = useLocation();
-    const event = state?.event || {
-        title: "Jakarta Tech Night",
-        description:
-            "Bergabunglah dalam malam diskusi teknologi seputar AI, produk, dan growth. Ajak teman, perluas jaringan, dan temukan peluang kolaborasi.",
-        venue: "SCBD, Jakarta",
-        type: "meetup",
-        dateISO: "2025-11-21T19:00:00",
-        capacity: 120,
-        price: 50000,
-        thumbnail:
-            "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop",
-    };
+    const { slug } = useParams();
+    const { data: eventData, isPending } = useEvent(slug);
 
-    const d = new Date(event.dateISO);
-    const dateLabel = `${d.toLocaleDateString("id-ID", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}, ${String(
-        d.getHours()
-    ).padStart(2, "0")}.${String(d.getMinutes()).padStart(2, "0")}`;
 
     const [openRegister, setOpenRegister] = React.useState(false);
     const [openPayment, setOpenPayment] = React.useState(false);
@@ -118,7 +106,6 @@ export const Event = () => {
         setProcessing(true);
         setTimeout(() => {
             setProcessing(false);
-            // Simulasi kegagalan kecil
             const failed = Math.random() < 0.1;
             if (failed) {
                 setErrors((prev) => ({ ...prev, _form: "Registrasi gagal, coba lagi." }));
@@ -187,10 +174,10 @@ export const Event = () => {
         <div className="min-h-screen bg-card">
             {/* Hero image */}
             <div className="mx-auto w-full max-w-4xl">
-                {event.thumbnail && (
+                {eventData?.banner && (
                     <img
-                        src={event.thumbnail}
-                        alt={event.title}
+                        src={eventData?.banner}
+                        alt={eventData?.title}
                         className="h-56 w-full rounded-b-2xl object-cover sm:h-72 md:h-80"
                     />
                 )}
@@ -199,19 +186,22 @@ export const Event = () => {
                 <div className="px-4 py-6 sm:px-6 md:px-8">
                     <div className="flex items-start justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">{event.title}</h1>
+                            <h1 className="text-2xl font-bold text-card-foreground sm:text-3xl">{eventData?.title}</h1>
                             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                                <span className="inline-flex items-center gap-1"><MapPin size={16} /> {event.venue}</span>
-                                <span className="inline-flex items-center gap-1"><CalendarDays size={16} /> {dateLabel}</span>
-                                {event.capacity && (
-                                    <span className="inline-flex items-center gap-1"><Users size={16} /> Kapasitas {event.capacity}</span>
+                                <span className="inline-flex items-center gap-1"><MapPin size={16} /> {eventData?.address}</span>
+                                <span className="inline-flex items-center gap-1"><CalendarDays size={16} />
+                                    {eventData?.datetime && format(eventData.datetime, 'dd MMMM yyyy, HH:mm')}
+                                </span>
+                                {/* {eventData?.datetime} */}
+                                {eventData?.maxParticipant && (
+                                    <span className="inline-flex items-center gap-1"><Users size={16} /> Capacity {eventData?.maxParticipant}</span>
                                 )}
-                                <span className="inline-flex items-center gap-1"><Tag size={16} /> <Badge type={event.type} /></span>
+                                <span className="inline-flex items-center gap-1"><Tag size={16} /> <Badge type={eventData?.type} /></span>
                             </div>
                         </div>
                     </div>
 
-                    <p className="mt-6 max-w-3xl text-base leading-relaxed text-foreground/80">{event.description}</p>
+                    <p className="mt-6 max-w-3xl text-base leading-relaxed text-foreground/80">{eventData?.description}</p>
                 </div>
             </div>
 
@@ -219,7 +209,7 @@ export const Event = () => {
             <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-glass backdrop-blur supports-[backdrop-filter]:bg-glass">
                 <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3 sm:px-6 md:px-8">
                     <div className="text-sm text-muted-foreground">
-                        Biaya Event: <span className="font-semibold text-foreground">Rp {event.price.toLocaleString("id-ID")}</span>
+                        Registration Fee: <span className="font-semibold text-foreground">Rp {(50000).toLocaleString("id-ID")}</span>
                     </div>
                     <button
                         onClick={() => setOpenRegister(true)}
@@ -308,7 +298,7 @@ export const Event = () => {
             <Modal open={openPayment} onClose={() => setOpenPayment(false)}>
                 <div className="px-5 py-6">
                     <h3 className="text-xl font-semibold text-card-foreground">Pembayaran</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">Biaya: Rp {event.price.toLocaleString("id-ID")}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Biaya: Rp {(50000).toLocaleString("id-ID")}</p>
                     <div className="mt-4 space-y-3">
                         <label className="flex items-center gap-3 rounded-lg border border-input p-3">
                             <input type="radio" name="pay" checked={payMethod === "qris"} onChange={() => setPayMethod("qris")} />

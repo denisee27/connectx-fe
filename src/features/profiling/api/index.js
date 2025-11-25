@@ -1,22 +1,21 @@
 import api from "../../../core/api";
 
-// Simple retry mechanism: up to 3 attempts with exponential backoff
-export async function submitProfiling(payload) {
-  const maxAttempts = 3;
-  let attempt = 0;
-  let lastError = null;
-  while (attempt < maxAttempts) {
-    try {
-      const res = await api.post("/profiling/submit", payload, {
-        timeout: 10000,
-      });
-      return res?.data ?? res;
-    } catch (e) {
-      lastError = e;
-      attempt += 1;
-      const delay = 400 * Math.pow(2, attempt); // 800, 1600, 3200
-      await new Promise((r) => setTimeout(r, delay));
-    }
-  }
-  throw lastError || new Error("Submit failed");
+export const getQuestions = async () => {
+  const res = await api.get("/profiling/questions");
+  return res;
+}
+
+export const getCountries = async () => {
+  const res = await api.get("/places/countries");
+  return res;
+}
+
+export const getCities = async (countryId) => {
+  const res = await api.get(`/places/cities/${countryId}`);
+  return res;
+}
+
+export const postProfilling = async (payload) => {
+  const res = await api.post("/profiling", payload);
+  return res;
 }

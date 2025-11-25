@@ -22,12 +22,12 @@ function Tab({ label, active, onClick }) {
 
 function CityItem({ name, abbr, count, colorClass }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-shadow hover:shadow-sm">
-      <div
+    <div className="flex text-center items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-shadow hover:shadow-sm">
+      {/* <div
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white ${colorClass}`}
       >
         {abbr}
-      </div>
+      </div> */}
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-gray-900">{name}</p>
         <p className="text-xs text-gray-500">{count} Acara</p>
@@ -36,11 +36,11 @@ function CityItem({ name, abbr, count, colorClass }) {
   );
 }
 
-export default function CityGrid({ regions, initialActive = "asia" }) {
-  const tabs = React.useMemo(() => regions?.map((r) => ({ key: r.key, label: r.label })) || [], [regions]);
+export default function CityGrid({ regions, initialActive = "Asia" }) {
+  const tabs = React.useMemo(() => regions?.map((r) => ({ key: r.name, label: r.name })) || [], [regions]);
   const [active, setActive] = React.useState(initialActive);
 
-  const activeRegion = React.useMemo(() => regions?.find((r) => r.key === active) || null, [regions, active]);
+  const activeRegion = React.useMemo(() => regions?.find((r) => r.name === active) || null, [regions, active]);
 
   const accentColors = React.useMemo(
     () => [
