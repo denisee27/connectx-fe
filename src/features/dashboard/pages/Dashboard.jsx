@@ -16,7 +16,6 @@ function DashboardContent({ initial }) {
   const { data: highlights = [], isPending: isHeighlights } = useHighlights();
   const { data: popular = [], isPending: isPopular } = usePopular();
   const { data: regions = [], isPending: isRegions } = useRegionRooms();
-  console.log(regions);
   // Tabs for "Acara Populer"
   const popularTabs = useMemo(() => {
     if (!popular || popular.length === 0) {
@@ -36,6 +35,8 @@ function DashboardContent({ initial }) {
       }));
     return tabs.length > 0 ? tabs : [{ key: "event", label: "Event" }];
   }, [popular]);
+
+
 
   const [popularActive, setPopularActive] = React.useState("dinner");
 

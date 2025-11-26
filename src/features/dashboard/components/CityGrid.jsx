@@ -8,9 +8,9 @@ function Tab({ label, active, onClick }) {
       type="button"
       onClick={onClick}
       className={
-        "rounded-full px-3 py-1.5 text-sm transition-colors " +
+        "rounded-full px-3 py-1.5 text-sm transition-colors cursor-pointer " +
         (active
-          ? "bg-gray-900 text-white shadow-sm"
+          ? "bg-primary text-white shadow-sm"
           : "border border-gray-300 bg-white text-gray-800 hover:bg-gray-100")
       }
       aria-selected={active}

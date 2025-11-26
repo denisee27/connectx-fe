@@ -70,7 +70,6 @@ export default function Suggestion() {
     const { profileData } = state || {};
     const { mutateAsync: postProfiling } = useProfilling();
     const setAuth = useAuthStore((state) => state.setAuth);
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [suggestedRooms, setSuggestedRooms] = useState([]);
@@ -109,8 +108,9 @@ export default function Suggestion() {
 
                 const response = await postProfiling({ data: payload });
                 console.log('res:', response)
-                setAuth({ user: null, accessToken: response.accessToken });
-                setSuggestedRooms(response.rooms);
+                console.log('response.accessToken', response.data.accessToken)
+                setAuth({ user: null, accessToken: response.data.accessToken });
+                setSuggestedRooms(response.data.rooms);
 
                 resetProfilingAll(() => { });
             } catch (e) {

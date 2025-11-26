@@ -4,14 +4,13 @@ import { useNavigate } from "react-router-dom";
 import SectionHeader from "../../dashboard/components/SectionHeader.jsx";
 import EventCard from "../../dashboard/components/EventCard.jsx";
 import PopularTabs from "../../dashboard/components/PopularTabs.jsx";
+import { useListEvent } from "../hooks/useListEvent.js";
 
-// Format util for sorting by nearest date
 function parseISO(iso) {
     const d = new Date(iso);
     return Number.isNaN(d.getTime()) ? null : d.getTime();
 }
 
-// Sample dataset per category
 function makeData() {
     const base = [
         {
@@ -115,6 +114,25 @@ function makeData() {
 
 export const ListEvent = () => {
     const navigate = useNavigate();
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+
+    const filters = useMemo(() => {
+        return {
+            page,
+            limit,
+        };
+    }, [page, limit]);
+
+    const {
+        data: { data: eventList = [], meta } = {},
+        isLoading,
+        isFetching,
+        error,
+    } = useListEvent(filters);
+
+    console.log("eventList", eventList);
+    console.log("meta", meta);
     const tabs = useMemo(
         () => [
             { key: "event", label: "Event" },
@@ -133,7 +151,7 @@ export const ListEvent = () => {
     const [sortBy, setSortBy] = useState("nearest"); // 'nearest' | 'popular'
 
     const pageSize = 12;
-    const [page, setPage] = useState(1);
+    // const [page, setPage] = useState(1);
 
     const currentList = useMemo(() => {
         const raw = activeTab === "event" ? events : activeTab === "meetup" ? meetups : dinners;

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 // Submission now happens in FormProfile per revised flow
 import { useModal } from "../../../core/stores/uiStore";
-import { TriangleAlert } from "lucide-react";
+import { Loader2, TriangleAlert } from "lucide-react";
 import { useQuestions } from "../hooks/useProfiling";
 
 /**
@@ -35,7 +35,8 @@ function ProgressBar({ current, total }) {
 export default function Questioner() {
     const navigate = useNavigate();
     const { data: questionsData, isPending: isPendingQuestions, error: questionsError } = useQuestions();
-    const questions = useMemo(() => questionsData?.mbti_questions || [], [questionsData]);
+    console.log('123', questionsData)
+    const questions = useMemo(() => questionsData?.data?.mbti_questions || [], [questionsData]);
 
     const total = questions.length;
     const [index, setIndex] = useState(0);
@@ -240,8 +241,14 @@ export default function Questioner() {
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
             <div className="w-full max-w-2xl bg-white shadow-md rounded-2xl p-8">
                 {isPendingQuestions ? (
-                    <div className="text-center">
-                        <p className="text-gray-600">Loading questions...</p>
+                    <div className="flex flex-col items-center justify-center py-10">
+                        {/* Icon Spinner */}
+                        <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
+
+                        {/* Text dengan animasi pulse halus */}
+                        <p className="text-gray-500 text-sm font-medium animate-pulse">
+                            Sedang menyiapkan pertanyaan...
+                        </p>
                     </div>
                 ) : questionsError ? (
                     <div className="text-center">

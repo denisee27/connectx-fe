@@ -13,17 +13,17 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 const profileSchema = z.object({
-    name: z.string().min(2, "Nama minimal 2 karakter"),
+    name: z.string().min(2, "Name must be at least 2 characters"),
     bornDate: z.date({
-        required_error: "Tanggal lahir wajib diisi",
-        invalid_type_error: "Format tanggal tidak valid",
+        required_error: "Date of birth is required",
+        invalid_type_error: "Invalid date format",
     }),
-    gender: z.string().min(1, "Pilih gender"),
-    city: z.string().min(1, "Kota wajib diisi"),
-    country: z.string().min(1, "Negara wajib diisi"),
-    occupation: z.string().min(2, "Pekerjaan wajib diisi"),
-    phoneNumber: z.string().min(10, "Nomor telepon minimal 10 karakter"),
-    email: z.string().email("Format email tidak valid"),
+    gender: z.string().min(1, "Gender is required"),
+    city: z.string().min(1, "City is required"),
+    country: z.string().min(1, "Country is required"),
+    occupation: z.string().min(2, "Occupation is required"),
+    phoneNumber: z.string().min(10, "Phone number must be at least 10 characters"),
+    email: z.string().email("Invalid email address"),
 });
 
 /**
@@ -55,7 +55,7 @@ export default function FormProfile() {
         resolver: zodResolver(profileSchema),
         defaultValues: {
             name: "",
-            bornDate: new Date(),
+            bornDate: "",
             gender: "",
             city: "",
             country: "",

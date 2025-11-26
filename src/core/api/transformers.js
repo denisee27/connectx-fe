@@ -25,13 +25,13 @@ export const transformResponse = (response) => {
   if (response.data && typeof response.data === "object") {
     if ("success" in response.data && "data" in response.data) {
       // Standard format: { success: true, data: {...} }
-      return response.data.data;
+      return response.data;
     }
 
     // If just data object without wrapper
     return response.data;
   }
-
+  console.log("response.123", response.data);
   // Fallback: return as-is
   return response.data;
 };
@@ -53,7 +53,7 @@ export const transformResponse = (response) => {
  */
 export const transformPaginatedResponse = (response) => {
   const data = response.data;
-  logger.info("response.data", data);
+  console.log("response.data", data);
 
   if (!data || typeof data !== "object") {
     logger.warn("Invalid paginated response format", { data });
@@ -61,16 +61,12 @@ export const transformPaginatedResponse = (response) => {
   }
 
   // Standard format with meta
-
+  console.log(data)
   if (data.data) {
-    const items = Array.isArray(data.data.data) ? data.data.data : [];
+    const items = Array.isArray(data.data) ? data.data : [];
     logger.info("items", items);
     const meta = data.meta
-      ? {
-          ...data.meta,
-          totalPages:
-            data.meta.total && data.meta.limit ? Math.ceil(data.meta.total / data.meta.limit) : 1,
-        }
+      ? data.meta
       : { total: items.length, page: 1, limit: items.length, totalPages: 1 };
 
     return { data: items, meta };

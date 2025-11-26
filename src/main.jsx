@@ -26,11 +26,11 @@ function AppShell() {
 }
 
 createRoot(document.getElementById("root")).render(
-  // <StrictMode>
-  <ErrorBoundary>
-    <AppProviders>
-      <AppShell />
-    </AppProviders>
-  </ErrorBoundary>
-  // </StrictMode>
+  <StrictMode>
+    <ErrorBoundary>
+      <AppProviders>
+        <AppShell />
+      </AppProviders>
+    </ErrorBoundary>
+  </StrictMode>
 );

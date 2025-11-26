@@ -37,7 +37,7 @@ export const useAuthStore = create((set, get) => ({
    * @param {{ user: object, accessToken: string }} authData
    */
   setAuth: ({ user, accessToken }) => {
-    console.log('acces', accessToken)
+    console.log('setAtuh at setAuth', accessToken)
     const currentUser = get().user;
     const normalizedUser = normalizeUserData(user) ?? currentUser ?? null;
     localStorage.setItem("accessToken", accessToken);
@@ -45,7 +45,7 @@ export const useAuthStore = create((set, get) => ({
 
     // Schedule automatic token refresh
     logger.info("Auth state set, scheduling token refresh");
-    tokenRefreshManager.scheduleRefresh(accessToken);
+   //tokenRefreshManager.scheduleRefresh(accessToken);
   },
 
   logout: async (reason = null, showModal = false) => {

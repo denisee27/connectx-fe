@@ -1,6 +1,7 @@
 import React from "react";
-import { MapPin, Briefcase, CalendarDays, Zap, Users, Brain, Mail, Globe, User } from "lucide-react";
+import { MapPin, Briefcase, CalendarDays, Zap, Users, Brain, Mail, Globe, User, Mars, Venus } from "lucide-react";
 import { useProfile } from "../hooks/useProfile";
+import Markdown from "react-markdown";
 
 /**
  * Profile Page
@@ -55,16 +56,15 @@ export const Profile = () => {
 
                     {/* Identity */}
                     <div>
-                        <h1 className="text-4xl sm:text-5xl font-bold">{user.name}</h1>
+                        <h1 className="text-4xl sm:text-5xl font-bold capitalize">{profile?.name}</h1>
                         <div className="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
                             {/* Basic info */}
+                            <Badge icon={User} text={profile?.age} />
+                            <Badge icon={profile?.gender === "male" ? Mars : Venus} text={profile?.gender} />
+                            <Badge icon={Mail} text={profile?.email} />
                             <Badge icon={MapPin} text={profile?.city?.name} />
+                            <Badge icon={Globe} text={profile?.country?.name} />
                             <Badge icon={Briefcase} text={profile?.occupation} />
-                            <Badge icon={CalendarDays} text={profile?.bornDate} />
-                            {/* User info badges */}
-                            <Badge icon={Mail} text={user.email} />
-                            <Badge icon={Globe} text={user.country} />
-                            <Badge icon={User} text={user.gender} />
                         </div>
 
                         {/* Stats */}
@@ -76,7 +76,7 @@ export const Profile = () => {
                     </div>
                 </div>
             </section>
-
+            
             {/* Main Content */}
             <section className="mt-6 rounded-3xl border border-border bg-card shadow-sm">
                 {/* Header */}
@@ -101,7 +101,9 @@ export const Profile = () => {
                 <div className="mx-6 sm:mx-8 mb-6 rounded-2xl bg-muted p-4 sm:p-5 border border-border">
                     <h3 className="font-semibold mb-2">Ringkasan Kepribadian</h3>
                     <p className="text-sm sm:text-base text-muted-foreground">
-                        {user.mbti.summary} Dalam interaksi sosial, Anda lebih memilih percakapan yang mendalam dan bermakna daripada obrolan ringan. Anda memiliki kemampuan natural untuk melihat pola dan mengidentifikasi peluang yang mungkin terlewatkan oleh orang lain.
+                        <Markdown>
+                            {profile?.descPersonal}
+                        </Markdown>
                     </p>
                 </div>
 
@@ -110,7 +112,7 @@ export const Profile = () => {
                     <h3 className="font-semibold mb-3">Tipe Kepribadian</h3>
                     <div className="rounded-2xl bg-muted p-5 border border-border">
                         <div className="text-3xl sm:text-4xl font-extrabold text-primary tracking-wide">
-                            {user.mbti.type}
+                            {profile?.mbti}
                         </div>
                         <p className="mt-2 text-sm text-muted-foreground">
                             {user.mbti.description}
@@ -126,7 +128,9 @@ export const Profile = () => {
 const Badge = ({ icon: Icon, text }) => (
     <span className="inline-flex items-center gap-2 rounded-full border border-border bg-white/90 px-3 py-1 text-sm shadow-sm">
         <Icon size={16} className="text-muted-foreground" />
-        {text}
+        <span className="capitalize">
+            {text}
+        </span>
     </span>
 );
 
